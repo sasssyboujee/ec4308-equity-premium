@@ -1,0 +1,68 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.58in,top=0.52in,bottom=0.52in]{geometry}
+\usepackage{times}
+\usepackage{amsmath,amssymb}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+% Crisp section formatting to fit all 5 sections strictly on Page 1
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.4em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{5pt plus 1pt minus 1pt}{2pt plus 0.5pt minus 0.5pt}
+\setlength{\parskip}{2.2pt plus 0.5pt minus 0.5pt}
+\setlength{\parindent}{0pt}
+\linespread{1.01}
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Forecasting the Equity Risk Premium Out-of-Sample:}}\\[2pt]
+    {\large \textbf{Regularized Machine Learning and Technical Indicators}}\\[5pt]
+    {\normalsize \textbf{EC4308: Machine Learning and Economic Forecasting} \quad $\vert$ \quad \textbf{Project Proposal}}
+\end{center}
+
+\vspace{-4pt}
+\noindent\rule{\textwidth}{0.6pt}
+\vspace{-2pt}
+
+\section{Research Question \& Economic Motivation}
+Accurately forecasting the equity risk premium is central to portfolio allocation, asset pricing, and the assessment of market efficiency. Yet, Goyal and Welch (2008) show that conventional macroeconomic predictors and linear regressions rarely outperform the historical average in genuine out-of-sample forecasts. This project examines whether regularized machine-learning methods can improve upon that benchmark by handling predictor multicollinearity, potential sparsity, and nonlinear relationships more effectively. We further examine whether technical indicators---derived from past prices, momentum, moving averages, and trading volume---provide information beyond macroeconomic fundamentals, as suggested by Neely et al. (2014). Specifically, we ask: (1) Can regularized ML models generate positive out-of-sample $R^2$? (2) Do technical indicators add incremental predictive content? (3) Do any statistical improvements produce economically meaningful gains for a mean-variance investor?
+
+\section{Target Variable \& Data Description}
+Our target variable is the monthly U.S. equity risk premium, defined as the return on the S\&P 500 (including dividends) in excess of the risk-free rate, proxied by the 3-month U.S. Treasury bill rate. Following Goyal and Welch (2008), we use a standard set of macroeconomic predictors associated with equity-premium forecasting, including valuation ratios, interest rates, inflation, stock-market variance, and measures of corporate activity. We augment these variables with technical indicators motivated by Neely et al. (2014), which capture information from historical price movements through signals based on moving averages, momentum, and trading volume. Our final dataset contains 28 macroeconomic and technical predictors at monthly frequency spanning 1927 to 2023. All predictors will be appropriately lagged so that each forecast uses only information available at the time it is formed, thereby avoiding look-ahead bias.
+
+\section{Econometric \& Machine Learning Methodology}
+Our forecasting framework compares linear, regularized, dimension-reduction, and non-linear methods suited to the relatively large and potentially collinear set of 28 macroeconomic and technical predictors. Ordinary Least Squares (OLS) provides a simple unrestricted linear benchmark, allowing us to assess whether more flexible methods deliver genuine out-of-sample gains. Ridge regression is included to stabilize coefficient estimates when predictors are highly correlated, while LASSO allows for sparse predictive relationships by shrinking uninformative coefficients to zero. We also use Principal Component Regression (PCR) and Partial Least Squares (PLS) to reduce dimensionality: PCR captures common variation across predictors, whereas PLS constructs components that also reflect their relationship with the equity premium. Finally, Random Forest allows for nonlinearities and interactions that linear models may miss. OLS will be estimated in base R, Ridge and LASSO using \texttt{glmnet}, PCR and PLS using \texttt{pls}, and Random Forest using \texttt{ranger}.
+
+\section{Forecast Evaluation \& Significance Testing}
+We evaluate out-of-sample predictive performance against the historical prevailing mean benchmark of past excess returns. Statistical forecast accuracy is measured using the Campbell-Thompson (2008) out-of-sample $R^2$ ($R^2_{\text{OOS}}$). To evaluate whether $R^2_{\text{OOS}} > 0$ is statistically significant, we employ the Clark \& West (2007) test, which explicitly corrects for parameter estimation noise under the nested null hypothesis ($H_0: \beta = 0$). Pairwise performance between non-nested machine learning architectures is evaluated using the Diebold \& Mariano (1995) test. Recognizing that statistical precision does not ensure economic profitability, we conduct an economic evaluation by simulating a mean-variance investor with risk aversion $\gamma = 3$ who dynamically rebalances portfolio weights between equities and 3-month Treasury bills (constrained to weights between 0 and 1.5). Performance is assessed via the annualized Certainty Equivalent Return (CER) utility gain ($\Delta U$) relative to the benchmark and the portfolio's annualized Sharpe ratio.
+
+\section{Feasibility \& Execution Timeline}
+The project uses verified, publicly available data (1927--2023) and standard R libraries (\texttt{glmnet}, \texttt{pls}, \texttt{ranger}). Following Week 7 proposal approval, feature construction and model estimation will run through Weeks 8--10, forecast and economic evaluation in Weeks 11--12, and the 15-page report, presentation, and reproducible code finalized by Week 13.
+
+\newpage
+
+\begin{center}
+    {\Large \textbf{Key References}}\\[2pt]
+    {\normalsize \textbf{Methodological \& Empirical Literature}}
+\end{center}
+\vspace{-2pt}
+\noindent\rule{\textwidth}{0.6pt}
+\vspace{6pt}
+
+\begin{enumerate}[leftmargin=*,itemsep=10pt,topsep=6pt]
+    \item \textbf{Campbell, J. Y., \& Thompson, S. B. (2008).} Predicting the equity premium out of sample: Can anything beat the historical average? \textit{The Review of Financial Studies}, 21(4), 1509--1531.
+    \item \textbf{Clark, T. E., \& West, K. D. (2007).} Approximately normal tests for equal predictive accuracy in nested models. \textit{Journal of Econometrics}, 138(1), 291--311.
+    \item \textbf{Diebold, F. X., \& Mariano, R. S. (1995).} Comparing predictive accuracy. \textit{Journal of Business \& Economic Statistics}, 13(3), 253--263.
+    \item \textbf{Goyal, A., \& Welch, I. (2008).} A comprehensive look at the empirical performance of equity premium prediction. \textit{The Review of Financial Studies}, 21(4), 1455--1508.
+    \item \textbf{Neely, C. J., Rapach, D. E., Tu, J., \& Zhou, G. (2014).} Forecasting the equity risk premium: The role of technical indicators. \textit{Management Science}, 60(7), 1772--1791.
+\end{enumerate}
+
+\end{document}
