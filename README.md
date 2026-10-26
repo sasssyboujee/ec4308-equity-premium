@@ -46,21 +46,32 @@
 ## Repository layout
 
 ```
-R/                      All R scripts (00_config, modules 01-05, 99_demo)
-  ├── 00_config.R         shared constants (window, horizons, fees, gamma, paths)
+R/                      All R scripts (00_config, modules 01-07, 99_demo)
+  ├── 00_config.R         shared constants (window, horizons, fees, gamma, paths,
+  │                       predictor sets, sample dates)
   ├── 01_rolling_window.R fixed 240-month rolling OOS forecast harness
   ├── 02_prevailing_mean.R Goyal-Welch Prevailing Mean benchmark
   ├── 03_diebold_mariano.R DM (1995) test, Newey-West HAC, RMSE & MAE
   ├── 04_switching_strategy.R binary switching backtester (Sharpe, drawdown, fees)
   ├── 05_mv_utility.R      mean-variance investor, CER gain (Delta U)
+  ├── 06_technical_indicators.R Neely et al. (2014) 14 signals (MA/MOM/VOL)
+  ├── 07_unitroot.R        ADF test (BIC lags, MacKinnon critical values)
   └── 99_demo_synthetic.R  end-to-end smoke test on synthetic data
 data/
-  ├── raw/                 source data (download via data/download_goyal_data.R)
+  ├── 00_fetch_technical.R provenance + fetch of technical inputs
+  ├── 01_build_panel.R     aligned panel -> data/processed/panel.csv (+ codebook)
+  ├── 02_table1.R          Table 1 summary stats + ADF -> output/tables/
+  ├── 03_validate_signals.R our signals vs Neely et al. published (99.98%)
+  ├── download_goyal_data.R Goyal-Welch-Zafirov workbook fetcher
+  ├── raw/                 source data (GWZ workbook, volume chain, published
+  │                        signals reference, Neely replication workbook)
   ├── processed/           cleaned, lagged, model-ready panels
   └── README.md            DATA ALIGNMENT CONVENTION — read before building panels
 output/
   ├── figures/             all report figures
-  └── tables/              all report tables (Table 1-3)
+  └── tables/              all report tables (Table 1-3, signal validation)
+review/                   human review checkpoint packets (R1 Leon, R2 En Shao,
+                          R3 Sasi, R4 Vienna)
 proposal/                 proposal draft, LaTeX source, submitted PDF
 docs/                     EC4308 project guidelines
 archive/                  personal/legacy material (NOT shared — gitignored)
