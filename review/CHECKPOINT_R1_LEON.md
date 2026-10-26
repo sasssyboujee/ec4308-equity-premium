@@ -58,6 +58,9 @@ Rscript data/03_validate_signals.R  # re-run published-signal check
    `CONFIG$USE_EXPANDED = FALSE`. Note: enabling them does **not** shorten the
    sample (technicals still bind), it only widens X. **Do you want the expanded
    predictors as a robustness check in the appendix? (yes/no)**
+   *Update Mon 26 Oct:* the expanded panel (158 columns) is already built and
+   the full model run on it is pre-computing in the background — so a "yes"
+   costs you zero waiting time; the results will be ready when you answer.
 3. **Lag convention** = README convention: `x_lagk[t] = x[t-k]`, k = 1..6. So
    "lag 1" is the value from one month ago. (Neely et al. use only one lag,
    effectively x[t−1] in our indexing.)
