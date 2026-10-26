@@ -18,17 +18,17 @@
 # Usage (repo root):  Rscript R/09_run_models.R [n_cores]
 # =============================================================================
 
-args <- commandArgs(trailingOnly = TRUE)
-n_cores <- if (length(args) >= 1L) as.integer(args[1]) else
-  min(6L, parallel::detectCores() - 1L)
-spec <- if (length(args) >= 2L) args[2] else "full"
-hs <- if (length(args) >= 3L) as.integer(strsplit(args[3], ",")[[1]]) else CONFIG$HORIZONS
-
 source("R/00_config.R")
 source("R/01_rolling_window.R")
 source("R/02_prevailing_mean.R")
 source("R/08_models.R")
 source("R/10_combine_forecasts.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+n_cores <- if (length(args) >= 1L) as.integer(args[1]) else
+  min(6L, parallel::detectCores() - 1L)
+spec <- if (length(args) >= 2L) args[2] else "full"
+hs <- if (length(args) >= 3L) as.integer(strsplit(args[3], ",")[[1]]) else CONFIG$HORIZONS
 
 panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
 panel$date <- as.Date(panel$date)
