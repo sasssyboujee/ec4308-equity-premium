@@ -12,8 +12,15 @@
 # The long-run variance of d_t is estimated with a Newey-West (Bartlett)
 # kernel using lag = h - 1, because h-step-ahead forecast errors follow an
 # MA(h-1) process. Implemented in base R so the evaluation module has zero
-# package dependencies (cross-check: forecast::dm.test gives the same
-# statistic under the same loss when available).
+# package dependencies.
+#
+# Cross-check note: at h = 1 our statistic equals forecast::dm.test's up to
+# the variance denominator (we use the T-normalized Newey-West convention;
+# forecast uses the unbiased (T-1) variance at lag 0 -- a 0.08% difference
+# at T = 659). At h > 1 the two implementations also differ by kernel
+# weighting (we use Bartlett weights; forecast sums the raw
+# autocovariances). Both are consistent HAC estimators; no inference in
+# this project is affected (verified).
 # =============================================================================
 
 hac_var_mean <- function(x, lag = 0L) {

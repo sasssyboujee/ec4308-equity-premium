@@ -323,8 +323,9 @@ benchmark precisely because it learns to place most weight on the shrinkage
 forecasts. Consistent with this reading, restricting the predictor matrix to
 the 84 macro-lag columns improves the joint fit materially (LASSO
 $R^2_{\mathrm{OOS}} = -0.9\%$ at $h=1$, versus $-8.8\%$ on the full set),
-while the technical-only variant is also negative: in the multivariate
-setting the technical signals dilute rather than sharpen the fit. Taken
+while the technical-only variant is also negative (Appendix~\ref{app:variants}):
+in the multivariate setting the technical signals dilute rather than sharpen
+the fit. Taken
 together, our evidence is consistent with Goyal, Welch and
 Zafirov (2024): the equity premium remains very hard to predict
 out-of-sample, and any predictability is episodic rather than structural.
@@ -361,8 +362,20 @@ prevailing mean directly with the model forecast---a natural response to the
 persistent failure of point forecasts documented here.
 
 \appendix
-\section{Clark--West appendix test}\label{app:cw}
-Because every model in this paper nests the prevailing mean (a regression on
+\section{Predictor-set variants}\label{app:variants}
+Table~\ref{tab:tableA1} reports $R^2_{\mathrm{OOS}}$ at $h=1$ for three
+predictor sets: the full design (84 macro-lag columns plus 14 technical
+signals), the 14 technical signals alone, and the 84 macro-lag columns alone.
+The macro-only set is closest to the benchmark for the shrinkage estimators
+(LASSO $-0.9\%$), and the technical-only set is uniformly worse---in the
+joint multivariate fit the technical signals dilute rather than sharpen the
+forecasts, which is why the bivariate design of
+Section~\ref{sec:results:neely} remains the natural vehicle for their
+information.
+
+\input{../output/tables/tableA1_tex.tex}
+
+\section{Clark--West appendix test}\label{app:cw}Because every model in this paper nests the prevailing mean (a regression on
 a constant only), we supplement the Diebold--Mariano tests of
 Table~\ref{tab:table2} with the Clark--West (2007) adjusted-MSPE test, which
 is designed for nested comparisons. The one-sided $p$-values, reported in

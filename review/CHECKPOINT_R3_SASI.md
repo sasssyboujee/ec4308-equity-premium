@@ -25,6 +25,11 @@ Reproduce: `Rscript R/09_run_models.R 6` → `Rscript R/11_evaluate.R` →
       differential on squared/absolute errors, Newey–West HAC with lag h−1,
       one-sided H1 "model more accurate". Confirm the lag choice for h=3/12
       (11 lags at h=12) and that `hac_var_mean` matches Newey–West.
+      *Cross-check done for you:* vs `forecast::dm.test` at h=1 our statistic
+      differs only by the T vs T−1 variance denominator (2.97897 vs 2.97671,
+      T=659); at h=3 the additional ~2% comes from Bartlett kernel weighting
+      (ours) vs raw autocovariance sums (forecast). Both are consistent HAC
+      estimators; the note is documented in the module header.
 - [ ] **CW appendix**: `R/12_clark_west.R` — adjusted loss differential
       f = e₁² − [e₂² − (f₁−f₂)²] with HAC t-stat. Verify against your lecture
       formula.

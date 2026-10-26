@@ -176,4 +176,41 @@ lines3 <- c(
 )
 writeLines(lines3, file.path(CONFIG$OUTPUT_TABLES, "table3_tex.tex"))
 
-cat("Wrote table1_tex.tex, table2_tex.tex, table3_tex.tex to", CONFIG$OUTPUT_TABLES, "\n")
+# ------------------------------- Table A1: spec variants at h = 1 ------------
+specs <- c(full = "forecasts_h1.csv", tech = "forecasts_h1_tech.csv",
+           macro = "forecasts_h1_macro.csv")
+MODELS2 <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf",
+             "equal_comb", "gr_comb")
+panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
+y <- panel[[CONFIG$TARGET]]
+r2mat <- sapply(names(specs), function(sp) {
+  fc <- read.csv(file.path(CONFIG$DATA_PROCESSED, specs[[sp]]))
+  sapply(MODELS2, function(nm) {
+    100 * (1 - sum((y[fc$target_index] - fc[[nm]])^2) /
+               sum((y[fc$target_index] - fc$pm)^2))
+  })
+})
+a1_rows <- sapply(MODELS2, function(nm) {
+  sprintf("%s & %s & %s & %s \\\\", esc_tex(nm),
+          fmt(r2mat[nm, "full"], 2), fmt(r2mat[nm, "tech"], 2),
+          fmt(r2mat[nm, "macro"], 2))
+})
+linesA1 <- c(
+  "\\begin{table}[htbp]",
+  "\\centering",
+  "\\caption{Out-of-sample $R^2$ (\\%) at $h=1$ by predictor set: full set (98 columns), technical signals only (14), and macro lags only (84).}",
+  "\\label{tab:tableA1}",
+  "\\small",
+  "\\begin{tabular}{lccc}",
+  "\\toprule",
+  "Model & Full & Technical & Macro \\\\",
+  "\\midrule",
+  a1_rows,
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\end{table}"
+)
+writeLines(linesA1, file.path(CONFIG$OUTPUT_TABLES, "tableA1_tex.tex"))
+
+cat("Wrote table1_tex.tex, table2_tex.tex, table3_tex.tex, tableA1_tex.tex to",
+    CONFIG$OUTPUT_TABLES, "\n")
