@@ -19,7 +19,8 @@ zip_path <- file.path(out_dir, "EC4308_Project_Submission.zip")
 if (file.exists(zip_path)) file.remove(zip_path)
 
 files <- c(
-  "report/main.pdf",
+  # NOTE: report/main.pdf is uploaded to Canvas separately (see
+  # SUBMISSION_CHECKLIST.md); the zip carries the LaTeX SOURCE + data + code.
   "report/main.tex",
   "README.md",
   "EC4308_Project.Rproj",
