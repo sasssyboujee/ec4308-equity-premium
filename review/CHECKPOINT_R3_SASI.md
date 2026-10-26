@@ -68,6 +68,13 @@ MV investor: ΔU = +1.31% p.a. (post-LASSO), +1.22% (rlasso), +1.06% (GR),
    y[t] made h months earlier (most recent available h-ahead forecast of that
    month). Alternative would be overlapping positions held h months — say if
    you prefer that and I'll implement it.
+   *Pre-computed for you (Mon 26 Oct):* timing B ("freshest h-month-ahead
+   outlook updated monthly", `R/17_switching_overlap.R` →
+   `output/tables/table3_alt_h{3,12}.csv`) gives the same qualitative
+   picture — e.g. h=3 post-LASSO: wealth $67.4 vs buy-and-hold $345.4,
+   Sharpe 0.767 vs 0.778, maxDD −23.4% vs −50.2% (vs timing A's $82.4).
+   Both timings tell the same economic story, so this choice does not
+   change any conclusion; pick either and I'll make it the default.
 2. **Hit rate added** to Table 2 (direction-of-change loss, per guidelines).
 3. **Reference rows** (Buy-and-Hold, PM-driven) added to Table 3.
 4. **CW reported in Table 2**, appendix section discusses it (no separate table).
