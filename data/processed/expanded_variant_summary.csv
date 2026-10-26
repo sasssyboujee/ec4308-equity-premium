@@ -1,0 +1,19 @@
+"model","spec","horizon","R2_OOS_pct"
+"rlasso","expanded (158 cols)",1,-8.2
+"postlasso","expanded (158 cols)",1,-18.81
+"ridge","expanded (158 cols)",1,-35.56
+"enet","expanded (158 cols)",1,-31.07
+"pcr","expanded (158 cols)",1,-14.38
+"pls","expanded (158 cols)",1,-56.84
+"rf","expanded (158 cols)",1,-49.21
+"equal_comb","expanded (158 cols)",1,-21.44
+"gr_comb","expanded (158 cols)",1,-8.89
+"rlasso","expanded (158 cols)",3,-8.95
+"postlasso","expanded (158 cols)",3,-17.17
+"ridge","expanded (158 cols)",3,-33.44
+"enet","expanded (158 cols)",3,-33.24
+"pcr","expanded (158 cols)",3,-10.3
+"pls","expanded (158 cols)",3,-54.71
+"rf","expanded (158 cols)",3,-43.08
+"equal_comb","expanded (158 cols)",3,-19.56
+"gr_comb","expanded (158 cols)",3,-7.66
