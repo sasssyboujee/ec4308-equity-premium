@@ -20,6 +20,7 @@ if (file.exists(zip_path)) file.remove(zip_path)
 
 files <- c(
   "report/main.pdf",
+  "report/main.tex",
   "README.md",
   "EC4308_Project.Rproj",
   "EC4308_Project_Guidelines.pdf",
