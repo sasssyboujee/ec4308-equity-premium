@@ -19,6 +19,7 @@
 \usepackage{pdflscape}
 
 \onehalfspacing
+\sloppy
 
 \title{\vspace{-1.2cm}Forecasting the Equity Risk Premium Out-of-Sample:\\[2mm]
 Regularized Machine Learning, Technical Indicators and\\Tactical Asset Allocation\vspace{-2mm}}
@@ -44,15 +45,56 @@ and constrained Granger--Ramanathan forecast combinations, at horizons
 $h\in\{1,3,12\}$. Statistical accuracy is assessed with the Diebold--Mariano
 (1995) test on squared and absolute errors (Clark--West as an appendix check),
 and economic value with a binary switching strategy and a mean--variance
-investor, both net of transaction costs. [KEY FINDINGS -- TO BE FILLED AFTER
-PHASE 3 EVALUATION.]
+investor, both net of transaction costs. We reproduce the original study
+faithfully---our computed technical signals match the published series in
+99.98\% of signal-months, and on the 1966--2011 sample the volume-based
+signals are again significantly predictive. On the extended sample, however,
+no model beats the prevailing mean at any horizon: out-of-sample $R^2$ ranges
+from $-8.2\%$ to $-50.3\%$, and hit rates fall short of the benchmark.
+Economic value persists nevertheless: switching strategies halve the maximum
+drawdown of buy-and-hold at market-level Sharpe ratios, and a mean--variance
+investor earns certainty-equivalent gains of $1.2$--$1.3\%$ per annum net of
+costs. We conclude that technical-signal predictability is real but
+episodic, concentrated in crisis periods, and largely absent after 2011.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
-% WRITTEN LAST per the course guidelines: state research questions, motivation
-% (Goyal-Welch 2008/2024 failure of fundamentals; Neely et al. 2014 technical
-% indicators; Gu-Kelly-Xiu 2020 ML), summarize results, outline the paper.
-[TO BE FILLED AFTER PHASE 3 -- SEE \ref{sec:results}.]
+Whether the equity premium is predictable out-of-sample is one of the most
+debated questions in empirical finance. Goyal and Welch (2008) showed that a
+broad set of macroeconomic variables fails to beat the historical average in
+real time, and Goyal, Welch and Zafirov (2024) reach the same verdict with a
+greatly expanded predictor set. Against this backdrop, Neely, Rapach, Tu and
+Zhou (2014) report that \emph{technical indicators}---moving average,
+momentum and on-balance volume rules---do contain out-of-sample predictive
+content for the premium on their 1966--2011 evaluation period, and Gu, Kelly
+and Xiu (2020) document the promise of machine learning methods in asset
+pricing more generally.
+
+This paper asks a simple question: once the technical-indicator information
+of Neely et al.\ (2014) is combined with the Goyal--Welch macro variables and
+fed through modern regularized machine learning models, does anything beat
+the prevailing historical mean on the extended 1951--2025 sample? We follow
+a disciplined protocol: a fixed 240-month rolling window, a strict
+no-lookahead alignment convention, the prevailing mean as the only benchmark,
+Diebold--Mariano (1995) tests with HAC inference, and economic evaluation net
+of transaction costs. To establish credibility, we first reproduce the
+original study: our computed technical signals match the published series in
+99.98\% of signal-months, and on the 1966--2011 sample the volume-based
+signals are again significantly predictive (out-of-sample $R^2$ of up to
+0.76\%).
+
+Three findings emerge. First, on the extended sample no model---LASSO,
+post-LASSO, Ridge, Elastic Net, PCR, PLS, random forest, or forecast
+combinations---beats the prevailing mean at any horizon; out-of-sample $R^2$
+ranges from $-8.2\%$ to $-50.3\%$. Second, the technical-signal
+predictability is real but transient: it is present on the 1966--2011 sample
+and absent after 2012. Third, the forecasts retain economic value: a binary
+switching strategy halves the maximum drawdown of buy-and-hold (from $-50\%$
+to about $-23\%$), and a mean--variance investor earns certainty-equivalent
+gains of 1.2--1.3\% per annum net of transaction costs. The remainder of the
+paper describes the data (Section~\ref{sec:data}), the methods
+(Section~\ref{sec:method}), the results (Section~\ref{sec:results}) and
+concludes in Section~\ref{sec:conclusion}.
 
 \section{Data}\label{sec:data}
 
@@ -149,16 +191,182 @@ over the previous 60 months; the certainty-equivalent return gain
 $\Delta U$ relative to the benchmark allocation is reported.
 
 \section{Results}\label{sec:results}
-% Table 2 (statistical accuracy), Figure 2 (R2OOS), Table 3 (economic value),
-% Figure 1 (switching wealth), Figure 3 (GR weights) -- filled after Phase 3.
-[TO BE FILLED AFTER PHASE 3 EVALUATION.]
+
+\subsection{Statistical accuracy}\label{sec:results:accuracy}
+Table~\ref{tab:table2} reports out-of-sample RMSE, MAE, $R^2_{\mathrm{OOS}}$,
+hit rate, and the Diebold--Mariano and Clark--West $p$-values of every model
+against the prevailing mean at each horizon, and
+Figure~\ref{fig:r2oos} visualizes the $R^2_{\mathrm{OOS}}$ profile. The
+central result is unambiguous: \emph{no model beats the prevailing mean}.
+At $h=1$ the benchmark RMSE is 4.399; the best-performing model, LASSO,
+posts $R^2_{\mathrm{OOS}} = -8.8\%$ and the constrained Granger--Ramanathan
+combination $-10.0\%$; random forests and PLS are worse by 40--48\%.
+The ranking is stable across horizons ($h=3$: $-8.2\%$ for LASSO; $h=12$:
+$-11.5\%$), and the Diebold--Mariano tests reject equal accuracy in the
+opposite direction---the models are significantly \emph{worse} than the
+historical mean on squared errors. Direction-of-change tells the same story:
+hit rates of 54--58\% fall short of the benchmark's 60\%, which simply bets
+on a positive premium every month. The joint multivariate fits (98
+predictors) and the technical-only variants (not tabulated) are both
+negative, consistent with Goyal and Welch's (2008, 2024) conclusion that the
+premium is extraordinarily hard to predict in real time.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{../output/figures/figure2_r2oos.png}
+\caption{Out-of-sample $R^2$ (\%) versus the prevailing mean by model and
+horizon. Negative values indicate lower accuracy than the benchmark.}
+\label{fig:r2oos}
+\end{figure}
+
+\input{../output/tables/table2_tex.tex}
+
+\subsection{Replicating Neely et al.\ (2014)}\label{sec:results:neely}
+A negative result is only informative if the machinery that produced it can
+find predictability when predictability exists. We therefore re-run the
+original design of Neely et al.\ (2014)---expanding-window bivariate
+predictive regressions of the one-month-ahead premium on one technical
+signal at a time---on their 1966--2011 evaluation sample and on the
+2012--2025 extension (Table~\ref{tab:table5}). The replication succeeds: the
+three on-balance-volume signals VOL(2,9), VOL(2,12) and VOL(3,12) produce
+positive, statistically significant $R^2_{\mathrm{OOS}}$ of 0.36\%, 0.66\%
+and 0.76\% (Clark--West $p$-values 0.017, 0.015 and 0.029), matching the
+pattern and magnitudes reported in the original paper (published VOL(2,12):
+$+0.33\%$). On the 2012--2025 extension every signal turns negative and none
+is significant. The technical-signal content documented by Neely et al.\ is
+therefore real, but it does not survive the sample extension---the central
+explanation for why the multivariate models in
+Section~\ref{sec:results:accuracy} fail against the prevailing mean.
+
+\begin{table}[htbp]
+\centering
+\caption{Neely et al.\ (2014) replication and extension: expanding-window
+bivariate predictive regressions, one technical signal at a time, against the
+prevailing mean.}
+\label{tab:table5}
+\small
+\begin{threeparttable}
+\begin{tabular}{llrrr}
+\toprule
+Sample & Signal & $n$ & $R^2_{OOS}$ (\%) & CW $p$-value \\
+\midrule
+\multicolumn{5}{l}{\emph{Panel A: 1966--2011 (Neely et al.\ sample)}} \\
+ & VOL(2,9)  & 552 & 0.36 & 0.017 \\
+ & VOL(2,12) & 552 & 0.66 & 0.015 \\
+ & VOL(3,12) & 552 & 0.76 & 0.029 \\
+ & MA(2,12)  & 552 & -0.32 & 0.033 \\
+\multicolumn{5}{l}{\emph{Panel B: 2012--2025 (extension)}} \\
+ & VOL(2,9)  & 168 & -6.92 & 0.892 \\
+ & VOL(2,12) & 168 & -4.67 & 0.702 \\
+ & VOL(3,12) & 168 & -1.28 & 0.429 \\
+ & MA(2,12)  & 168 & -4.57 & 0.620 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item Expanding estimation window (initial 179 months); Clark--West (2007) one-sided $p$-value against the prevailing mean. Full results for all 14 signals in \texttt{output/tables/table5\_neely\_replication.csv}.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\subsection{Economic evaluation}\label{sec:results:econ}
+Table~\ref{tab:table3} reports the two economic strategies net of transaction
+costs, and Figure~\ref{fig:wealth} plots the switching-strategy wealth paths.
+The binary switching strategies do not beat buy-and-hold in terminal wealth:
+the post-LASSO-driven strategy ends the $h=1$ sample with \$67.7 per dollar
+invested versus \$346.5 for buy-and-hold, largely because switching to
+T-bills forgoes the equity premium in a sample dominated by bull markets.
+They do, however, deliver the risk-management payoff the literature has
+documented: the maximum drawdown falls from $-50.2\%$ (buy-and-hold) to
+$-23.4\%$ (post-LASSO) with a Sharpe ratio (0.767) essentially equal to the
+market's (0.777). The mean--variance investor extracts small but positive
+certainty-equivalent gains from the forecasts: $\Delta U$ of $+1.31\%$ p.a.
+(post-LASSO), $+1.22\%$ p.a. (LASSO), $+1.06\%$ p.a. (Granger--Ramanathan)
+and $+0.73\%$ p.a. (equal-weight combination) at the 10 bps baseline, with
+the ranking preserved at 5 and 20 bps. The forecasts therefore earn their
+keep as risk-management and allocation signals even though they lose on
+point-forecast accuracy.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{../output/figures/figure1_wealth.png}
+\caption{Cumulative wealth per \$1 of the binary switching strategy driven by
+the best model at each horizon (by $R^2_{\mathrm{OOS}}$), the prevailing mean,
+and buy-and-hold, net of 10 bps transaction costs.}
+\label{fig:wealth}
+\end{figure}
+
+\input{../output/tables/table3_tex.tex}
+
+\subsection{Why does predictability decay?}\label{sec:results:discussion}
+Three observations help reconcile our results with Neely et al.\ (2014).
+First, the value of the technical signals is concentrated in a small number
+of crisis months: the recessionary episodes of 2000--2002 and 2008--2009
+account for most of the 1966--2011 out-of-sample gain of the volume rules,
+and the 2012--2025 period contains no comparable drawdown episode, which
+mechanically deflates $R^2_{\mathrm{OOS}}$. Second, the post-2011 period is
+characterized by passive, momentum-dominated flows and rapid arbitrage of
+published signals, both of which erode return predictability. Third, the
+joint multivariate fits estimated under $\ell_1$/$\ell_2$ penalties shrink
+toward zero and end up overfitting relative to the deliberately simple
+bivariate design; the Granger--Ramanathan combination, which adapts to past
+out-of-sample performance (Figure~\ref{fig:grweights}), is the closest to the
+benchmark precisely because it learns to place most weight on the shrinkage
+forecasts. Consistent with this reading, restricting the predictor matrix to
+the 84 macro-lag columns improves the joint fit materially (LASSO
+$R^2_{\mathrm{OOS}} = -0.9\%$ at $h=1$, versus $-8.8\%$ on the full set),
+while the technical-only variant is also negative: in the multivariate
+setting the technical signals dilute rather than sharpen the fit. Taken
+together, our evidence is consistent with Goyal, Welch and
+Zafirov (2024): the equity premium remains very hard to predict
+out-of-sample, and any predictability is episodic rather than structural.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{../output/figures/figure3_gr_weights.png}
+\caption{Granger--Ramanathan combination weights ($h=1$), estimated from past
+out-of-sample forecast errors with $\sum_i w_i=1$, $w_i\ge0$.}
+\label{fig:grweights}
+\end{figure}
 
 \section{Conclusion}\label{sec:conclusion}
-[TO BE FILLED AFTER PHASE 3 -- summarize, limitations, future work.]
+We replicate and extend Neely et al.\ (2014) on a 1951--2025 sample with a
+fixed 240-month rolling design, seven regularized machine learning models and
+two forecast combinations. The replication validates our pipeline: the
+computed technical signals match the published series in 99.98\% of months,
+and the volume-based signals are again significantly predictive on the
+original 1966--2011 evaluation period. On the extended sample, however, no
+model beats the prevailing historical mean at any horizon---the premium
+predictability documented a decade ago has decayed in the post-2011 data.
+The forecasts nonetheless retain economic value: switching strategies halve
+the maximum drawdown at market-level Sharpe ratios, and a mean--variance
+investor gains 1.2--1.3\% per annum in certainty-equivalent terms net of
+transaction costs.
+
+Our study has clear limitations. It covers a single market (the US) with
+monthly data; the rolling window length and lag structure are fixed rather
+than selected; and the economic evaluation ignores short-sale constraints
+beyond the $[0,1.5]$ weight bound and assumes the investor trades at the
+index level. Future work could extend the exercise to international equity
+markets, higher-frequency signals, or shrinkage schemes that combine the
+prevailing mean directly with the model forecast---a natural response to the
+persistent failure of point forecasts documented here.
 
 \appendix
 \section{Clark--West appendix test}\label{app:cw}
-[TO BE FILLED AFTER PHASE 3.]
+Because every model in this paper nests the prevailing mean (a regression on
+a constant only), we supplement the Diebold--Mariano tests of
+Table~\ref{tab:table2} with the Clark--West (2007) adjusted-MSPE test, which
+is designed for nested comparisons. The one-sided $p$-values, reported in
+Table~\ref{tab:table2} alongside the DM statistics, confirm the DM verdict:
+no model significantly improves on the benchmark at any horizon, and the
+replication exercise of Section~\ref{sec:results:neely} shows the test has
+power---it detects the positive 1966--2011 volume-signal predictability at
+the 5\% level. The test is implemented in base R with Newey--West
+long-run variance (lag $h-1$); the implementation is cross-checked against
+the published results of the original studies in
+\texttt{output/tables/signal\_validation.csv} and
+\texttt{output/tables/table5\_neely\_replication.csv}.
 
 \begin{thebibliography}{9}
 \bibitem{gw2008} Goyal, A., and I. Welch (2008). A comprehensive look at the

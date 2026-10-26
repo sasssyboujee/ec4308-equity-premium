@@ -102,8 +102,7 @@ for (i in seq_len(nrow(F))) {
     if (sum(ok) >= 60L) {
       sol <- gr_weights(Fh[ok, , drop = FALSE], yh[ok])
       if (!is.null(sol)) {
-        wdf3 <- rbind(wdf3, data.frame(date = panel$date[idx[i]],
-                                       t(w = sol)))
+        wdf3 <- rbind(wdf3, data.frame(date = panel$date[idx[i]], t(sol)))
       }
     }
   }

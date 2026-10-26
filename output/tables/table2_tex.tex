@@ -1,0 +1,49 @@
+\begin{table}[htbp]
+\centering
+\caption{Out-of-sample accuracy vs. the prevailing mean benchmark.}
+\label{tab:table2}
+\small
+\begin{threeparttable}
+\begin{tabular}{lcccccccc}
+\toprule
+Model & RMSE & MAE & $R^2_{OOS}$ (\%) & HR & $DM_{RMSE}$ & $p_{DM}$ & $p_{MAE}$ & $p_{CW}$ \\
+\midrule
+\multicolumn{9}{l}{\emph{Panel: $h=1$ (OOS $n=659$; PM hit rate 0.60)}} \\
+rlasso & 4.589 & 3.429 & -8.79 & 0.57 & 2.980.999 & 0.973 & 0.328 \\
+postlasso & 4.778 & 3.556 & -17.93 & 0.57 & 4.261.000 & 0.999 & 0.349 \\
+ridge & 4.951 & 3.676 & -26.64 & 0.57 & 4.841.000 & 1.000 & 0.298 \\
+enet & 4.994 & 3.743 & -28.84 & 0.56 & 5.301.000 & 1.000 & 0.324 \\
+pcr & 4.729 & 3.519 & -15.56 & 0.57 & 3.401.000 & 0.998 & 0.210 \\
+pls & 5.217 & 3.917 & -40.62 & 0.56 & 6.161.000 & 1.000 & 0.155 \\
+rf & 5.360 & 4.005 & -48.44 & 0.54 & 6.191.000 & 1.000 & 0.488 \\
+equal\_comb & 4.792 & 3.559 & -18.66 & 0.58 & 3.991.000 & 0.999 & 0.285 \\
+gr\_comb & 4.615 & 3.432 & -10.04 & 0.58 & 2.710.997 & 0.965 & 0.268 \\
+\multicolumn{9}{l}{\emph{Panel: $h=3$ (OOS $n=657$; PM hit rate 0.60)}} \\
+rlasso & 4.581 & 3.451 & -8.19 & 0.56 & 2.980.999 & 0.987 & 0.242 \\
+postlasso & 4.761 & 3.587 & -16.84 & 0.56 & 4.291.000 & 1.000 & 0.242 \\
+ridge & 4.903 & 3.695 & -23.92 & 0.55 & 4.221.000 & 1.000 & 0.144 \\
+enet & 4.932 & 3.754 & -25.41 & 0.55 & 4.571.000 & 1.000 & 0.136 \\
+pcr & 4.708 & 3.553 & -14.26 & 0.55 & 3.541.000 & 1.000 & 0.118 \\
+pls & 5.195 & 3.953 & -39.14 & 0.57 & 5.051.000 & 1.000 & 0.120 \\
+rf & 5.261 & 3.907 & -42.66 & 0.55 & 5.501.000 & 1.000 & 0.179 \\
+equal\_comb & 4.750 & 3.567 & -16.32 & 0.58 & 3.621.000 & 0.999 & 0.132 \\
+gr\_comb & 4.593 & 3.459 & -8.73 & 0.57 & 2.830.998 & 0.986 & 0.140 \\
+\multicolumn{9}{l}{\emph{Panel: $h=12$ (OOS $n=648$; PM hit rate 0.60)}} \\
+rlasso & 4.656 & 3.542 & -11.52 & 0.53 & 3.851.000 & 0.999 & 0.695 \\
+postlasso & 4.853 & 3.694 & -21.19 & 0.53 & 4.891.000 & 1.000 & 0.675 \\
+ridge & 5.027 & 3.836 & -30.03 & 0.53 & 5.061.000 & 1.000 & 0.535 \\
+enet & 5.124 & 3.916 & -35.07 & 0.53 & 5.481.000 & 1.000 & 0.787 \\
+pcr & 4.803 & 3.661 & -18.68 & 0.55 & 3.771.000 & 1.000 & 0.471 \\
+pls & 5.405 & 4.085 & -50.28 & 0.54 & 5.841.000 & 1.000 & 0.702 \\
+rf & 5.297 & 4.072 & -44.38 & 0.53 & 7.231.000 & 1.000 & 0.183 \\
+equal\_comb & 4.872 & 3.733 & -22.11 & 0.54 & 4.891.000 & 1.000 & 0.585 \\
+gr\_comb & 4.684 & 3.556 & -12.87 & 0.54 & 3.821.000 & 0.999 & 0.563 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item $R^2_{OOS}$: Campbell--Thompson (2008), in percent vs. the prevailing mean; negative values mean the model is less accurate than the benchmark. HR: hit rate, the fraction of months in which the forecast sign matches the realized sign (direction-of-change loss).
+\item $DM$: Diebold--Mariano (1995) on squared errors, one-sided H1 ``model more accurate''; $p_{MAE}$: DM on absolute errors; $p_{CW}$: Clark--West (2007) adjusted-MSPE one-sided $p$-value (appendix check). $^{*}/^{**}/^{***}$: 10\%/5\%/1\%.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

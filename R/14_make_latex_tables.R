@@ -13,6 +13,8 @@ source("R/00_config.R")
 suppressMessages(library(dplyr))
 
 fmt <- function(x, d = 3) formatC(x, format = "f", digits = d)
+sig_tex <- function(s) gsub("%", "\\\\%", s)
+esc_tex <- function(s) gsub("_", "\\\\_", s)
 na_fmt <- function(x, d = 3) ifelse(is.na(x), "", fmt(x, d))
 stars <- function(p) ifelse(is.na(p), "",
   ifelse(p < 0.01, "^{***}", ifelse(p < 0.05, "^{**}", ifelse(p < 0.1, "^{*}", ""))))
@@ -38,7 +40,7 @@ lines <- c(
   sprintf("$y_t$ (full sample) & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
           fmt(tgt_full$Mean, 3), fmt(tgt_full$SD, 3), fmt(tgt_full$Min, 2),
           fmt(tgt_full$Max, 2), fmt(tgt_full$Skew, 2), fmt(tgt_full$Kurt, 2),
-          fmt(tgt_full$ADF, 2), tgt_full$ADF_sig),
+          fmt(tgt_full$ADF, 2), sig_tex(tgt_full$ADF_sig)),
   "\\midrule",
   "\\multicolumn{9}{l}{\\emph{Panel B: macroeconomic predictors (raw series)}} \\\\"
 )
@@ -47,7 +49,7 @@ for (i in seq_len(nrow(macro_rows))) {
   lines <- c(lines, sprintf(
     "%s & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
     r$Series, fmt(r$Mean, 3), fmt(r$SD, 3), fmt(r$Min, 2), fmt(r$Max, 2),
-    fmt(r$Skew, 2), fmt(r$Kurt, 2), fmt(r$ADF, 2), r$ADF_sig))
+    fmt(r$Skew, 2), fmt(r$Kurt, 2), fmt(r$ADF, 2), sig_tex(r$ADF_sig)))
 }
 lines <- c(lines,
   "\\midrule",
@@ -56,7 +58,7 @@ lines <- c(lines,
 for (i in seq_len(nrow(tech_rows))) {
   r <- tech_rows[i, ]
   lines <- c(lines, sprintf("%s & %s & & & & & & & \\\\",
-                            r$Series, fmt(r$Mean, 3)))
+                            esc_tex(r$Series), fmt(r$Mean, 3)))
 }
 lines <- c(lines,
   "\\bottomrule",
@@ -79,7 +81,7 @@ for (h in CONFIG$HORIZONS) {
   t2 <- read.csv(f2)
   rows <- apply(t2, 1, function(r) {
     sprintf("%s & %s & %s & %s & %s & %s%s & %s%s & %s%s \\\\",
-            r["model"], fmt(as.numeric(r["RMSE"]), 3), fmt(as.numeric(r["MAE"]), 3),
+            esc_tex(r["model"]), fmt(as.numeric(r["RMSE"]), 3), fmt(as.numeric(r["MAE"]), 3),
             fmt(as.numeric(r["R2_OOS_pct"]), 2), fmt(as.numeric(r["HR"]), 2),
             fmt(as.numeric(r["DM_RMSE_stat"]), 2),
             fmt(as.numeric(r["DM_RMSE_p"]), 3), stars(as.numeric(r["DM_RMSE_p"])),
@@ -125,7 +127,7 @@ for (h in CONFIG$HORIZONS) {
   rows <- apply(t3, 1, function(r) {
     sprintf(paste0("%s & %s & %s & %s & %s & %s & %s & %s & %s & %s ",
                    "& %s & %s & %s & %s & %s \\\\"),
-            r["model"],
+            esc_tex(r["model"]),
             na_fmt(as.numeric(r["sw_wealth_10bps"]), 2),
             na_fmt(as.numeric(r["sw_wealth_bh"]), 2),
             na_fmt(as.numeric(r["sw_sharpe_10bps"]), 2),
@@ -147,6 +149,7 @@ for (h in CONFIG$HORIZONS) {
   )
 }
 lines3 <- c(
+  "\\begin{landscape}",
   "\\begin{table}[htbp]",
   "\\centering",
   "\\caption{Economic value net of transaction costs.}",
@@ -168,7 +171,8 @@ lines3 <- c(
   "\\item MV: mean--variance investor with $\\gamma=3$, $w_t\\in[0,1.5]$; $\\Delta U$ = annualized certainty-equivalent gain over the benchmark allocation in percentage points; CER = certainty-equivalent return of the strategy (\\% p.a.).",
   "\\end{tablenotes}",
   "\\end{threeparttable}",
-  "\\end{table}"
+  "\\end{table}",
+  "\\end{landscape}"
 )
 writeLines(lines3, file.path(CONFIG$OUTPUT_TABLES, "table3_tex.tex"))
 

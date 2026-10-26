@@ -33,10 +33,7 @@ files <- c(
 files <- files[file.exists(files) & !dir.exists(files)]
 files <- unique(files)
 
-old_wd <- setwd("submission")
-on.exit(setwd(old_wd))
-# zip from submission/ so paths inside the archive are repo-relative
-utils::zip(basename(zip_path), files = file.path("..", files),
-           flags = "-q")
+# zip from the repo root so paths inside the archive are repo-relative
+utils::zip(zip_path, files = files, flags = "-q")
 cat("Wrote", normalizePath(zip_path), "\n")
 cat(length(files), "files\n")
