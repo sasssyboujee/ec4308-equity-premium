@@ -1,6 +1,6 @@
 # EC4308 Project Roadmap & Milestones (Post-Feedback Edition)
 
-> **AI-handoff status (Mon 26 Oct, ~16:20 SGT)** — the whole pipeline now runs
+> **AI-handoff status (Mon 26 Oct, ~16:45 SGT)** — the whole pipeline now runs
 > under AI execution with human review checkpoints in `review/`:
 > - ✅ **Phase 1 (data) done**: aligned panel 1951-02→2025-12 (899 mo, 98 predictors),
 >   Neely signals replicate the published series at **99.98%**, Table 1 built.
@@ -8,12 +8,21 @@
 > - ✅ **Phase 2 (models) done**: rlasso/post-LASSO, Ridge, ENet, PCR, PLS, RF,
 >   1/N + constrained GR ensembles, spec variants (full/tech/macro), Neely
 >   bivariate replication (reproduces their positive 1966–2011 VOL-signal
->   findings; predictability vanishes in 2012–2025). h=1 results in;
->   h=3/12 running. → packet `review/CHECKPOINT_R2_ENSHAO.md` (En Shao, due Fri 30 Oct).
-> - 🔄 **Phase 3 (evaluation)**: h=1 Tables 2–3 + hit rates done; h=3/12 tables
->   and figures pending the model run. → packet for Sasi next.
-> - ⏳ **Phase 4 (report/deck)**: LaTeX skeleton at `report/main.tex`; deck
->   generator at `deck/make_deck.py`. → packet for Vienna.
+>   findings; predictability vanishes in 2012–2025). h=1/3/12 all run,
+>   determinism verified. → packet `review/CHECKPOINT_R2_ENSHAO.md` (En Shao, due Fri 30 Oct).
+> - ✅ **Phase 3 (evaluation) done**: Tables 2–3 for all horizons (DM/CW, hit
+>   rates, switching + MV with 5/10/20 bps and BH/PM reference rows), Figures 1–3,
+>   Table 5 replication. → packet `review/CHECKPOINT_R3_SASI.md` (Sasi, due Wed 4 Nov).
+> - ✅ **Phase 4 (report/deck) done**: 12-page report PDF (`report/main.pdf`),
+>   10-slide deck with per-speaker notes (`deck/EC4308_Presentation.pptx`),
+>   submission zip staged (`submission/EC4308_Project_Submission.zip`).
+>   → packet `review/CHECKPOINT_R4_VIENNA.md` (Vienna, due Sat 7 Nov).
+> - ⏳ **Remaining (human)**: the four reviews above; fix findings; Sasi uploads
+>   to Canvas Mon 9 Nov; Week-13 rehearsal; Reading-Week peer review.
+>
+> Headline results: no model beats the prevailing mean at any horizon on the
+> extended sample (R²_OOS −8.2%..−50.3%); the Neely replication succeeds on
+> 1966–2011 and fails after 2012; MV investor gains +1.2–1.3% p.a. net of costs.
 >
 > Commits are pushed to `main` as approved.
 
