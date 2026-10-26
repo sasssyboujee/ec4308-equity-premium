@@ -150,7 +150,15 @@ computed through the forecast origin, the only admissible benchmark for this
 exercise: OLS benchmark forecasts fail out-of-sample and are not used.
 
 \subsection{Models}\label{sec:method:models}
-We estimate seven models within each window: (i) LASSO with the theoretical,
+The predictor matrix is wide relative to the 240-month estimation window,
+its columns are highly correlated (six lags of fourteen persistent macro
+series plus fourteen signals that switch in clusters), and any true signal
+is likely sparse and episodic. This is precisely the setting for which the
+penalized and dimension-reduction estimators below are designed: the
+$\ell_1$/$\ell_2$ penalties tame the collinearity, the component methods
+condense the factor structure, and the random forest admits nonlinear
+interactions and threshold effects that linear models cannot represent. We
+estimate seven models within each window: (i) LASSO with the theoretical,
 data-driven penalty of \texttt{hdm::rlasso} (no cross-validation required);
 (ii) post-LASSO, i.e.\ OLS refit on the LASSO-selected support; (iii) Ridge
 and (iv) Elastic Net ($\alpha=0.5$) with the penalty chosen by ten-fold
