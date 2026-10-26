@@ -61,6 +61,9 @@ Rscript data/03_validate_signals.R  # re-run published-signal check
    *Update Mon 26 Oct:* the expanded panel (158 columns) is already built and
    the full model run on it is pre-computing in the background — so a "yes"
    costs you zero waiting time; the results will be ready when you answer.
+   *Interim h=1 numbers:* expanded rlasso −8.2% (base −8.8%), GR −8.9%
+   (base −10.0%), pcr −14.4% — but ridge −35.6% and PLS −56.8% get worse.
+   Headline unchanged: nothing beats the prevailing mean either way.
 3. **Lag convention** = README convention: `x_lagk[t] = x[t-k]`, k = 1..6. So
    "lag 1" is the value from one month ago. (Neely et al. use only one lag,
    effectively x[t−1] in our indexing.)
