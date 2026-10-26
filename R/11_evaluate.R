@@ -19,15 +19,15 @@
 # Usage (repo root):  Rscript R/11_evaluate.R
 # =============================================================================
 
-args <- commandArgs(trailingOnly = TRUE)
-hs <- if (length(args) >= 1L) as.integer(args) else CONFIG$HORIZONS
-
 suppressMessages({library(readxl)})
 source("R/00_config.R")
 source("R/03_diebold_mariano.R")
 source("R/04_switching_strategy.R")
 source("R/05_mv_utility.R")
 source("R/12_clark_west.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+hs <- if (length(args) >= 1L) as.integer(args) else CONFIG$HORIZONS
 
 panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
 panel$date <- as.Date(panel$date)

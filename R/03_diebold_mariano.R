@@ -43,7 +43,12 @@ dm_test <- function(actual, f1, f2, power = 2L, h = 1L,
   if (T < 2L) stop("DM test needs at least 2 observations.", call. = FALSE)
 
   dbar <- mean(d)
-  stat <- dbar / sqrt(hac_var_mean(d, lag = h - 1L))
+  if (all(d == 0)) {
+    # identical forecasts: no loss differential, zero statistic
+    stat <- 0
+  } else {
+    stat <- dbar / sqrt(hac_var_mean(d, lag = h - 1L))
+  }
 
   p <- switch(
     alternative,

@@ -54,7 +54,7 @@ then `Rscript R/15_neely_bivariate.R`, `Rscript R/16_neely_replication.R`.
 | equal | 4.792 | −18.7% | 0.583 |
 | gr | 4.615 | −10.0% | 0.580 |
 
-Prevailing mean: RMSE 4.399, hit rate 0.612. **No model beats the PM at h=1.**
+Prevailing mean: RMSE 4.399, hit rate 0.599. **No model beats the PM at h=1.**
 The tech-only variant (14 signals) is also negative (best: rlasso −9.5%).
 This is the Goyal–Welch result on the modern sample — not a bug: the
 bivariate *replication* below reproduces Neely et al.'s positive findings on

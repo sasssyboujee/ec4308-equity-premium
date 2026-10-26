@@ -31,17 +31,42 @@
 1. **Install R packages** (once per machine):
    ```r
    install.packages(c("hdm", "glmnet", "pls", "ranger", "forecast",
-                      "sandwich", "readxl", "dplyr", "tidyr", "ggplot2"))
+                      "sandwich", "readxl", "dplyr", "tidyr", "ggplot2",
+                      "limSolve", "openxlsx", "lmtest", "zoo", "xts"))
    ```
 2. **Get the data** (from the repo root):
    ```bash
-   Rscript data/download_goyal_data.R     # -> data/raw/GoyalWelchZafirov_PredictorData.xlsx
+   Rscript data/download_goyal_data.R        # -> data/raw/GoyalWelchZafirov_PredictorData.xlsx
+   Rscript data/00_fetch_technical.R         # verify technical inputs (volume chain)
    ```
 3. **Smoke-test the evaluation module** (synthetic data, no dependencies):
    ```bash
    Rscript R/99_demo_synthetic.R
+   Rscript R/98_smoke_models.R               # every model_fn on synthetic data
    ```
 4. Open `EC4308_Project.Rproj` in RStudio for a ready-made session.
+
+## Reproducing the full analysis (from raw data)
+
+```bash
+Rscript data/01_build_panel.R        # -> data/processed/panel.csv (+ codebook)
+Rscript data/02_table1.R             # -> output/tables/table1.csv
+Rscript data/03_validate_signals.R   # -> output/tables/signal_validation.csv
+Rscript R/09_run_models.R 6          # all models x h in {1,3,12} (~35 min)
+                                     # variants: Rscript R/09_run_models.R 2 tech 1
+                                     #           Rscript R/09_run_models.R 2 macro 1
+Rscript R/15_neely_bivariate.R       # bivariate robustness (fixed window)
+Rscript R/16_neely_replication.R     # expanding-window Neely replication/extension
+Rscript R/11_evaluate.R              # -> Tables 2-3 (all horizons)
+Rscript R/13_figures.R               # -> Figures 1-3
+Rscript R/14_make_latex_tables.R     # -> LaTeX table fragments
+cd report && latexmk -pdf main.tex   # -> report/main.pdf (12 pages)
+python3 deck/make_deck.py            # -> deck/EC4308_Presentation.pptx
+Rscript scripts/make_submission_zip.R # -> submission/EC4308_Project_Submission.zip
+```
+
+Everything is deterministic (fixed seeds, `num.threads = 1` for ranger): two
+independent full h=1 runs were bit-identical.
 
 ## Repository layout
 
