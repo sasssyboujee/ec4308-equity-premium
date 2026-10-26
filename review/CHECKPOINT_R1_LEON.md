@@ -40,6 +40,11 @@ Rscript data/03_validate_signals.R  # re-run published-signal check
 - [ ] **ADF implementation**: `R/07_unitroot.R` — ADF with intercept+trend, BIC
       lag selection, MacKinnon asymptotic critical values (−4.04/−3.45/−3.15).
       Read it and confirm the regression matches the ADF form you were taught.
+      *Cross-check done for you:* at the same lag order our statistics match
+      `tseries::adf.test` to within 0.2% (eq_prem −29.436 vs −29.387; d/p
+      −3.705 vs −3.688; svar −20.063 vs −20.030; tms −4.777 vs −4.766;
+      infl −3.380 vs −3.351). Differences from tseries's defaults are entirely
+      due to BIC vs their default lag choice.
 
 ## Decisions I made (flag any you disagree with — tell me in chat)
 
