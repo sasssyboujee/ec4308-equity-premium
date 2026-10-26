@@ -64,10 +64,10 @@ results."
 credibility check. We re-ran Neely et al.'s exact design — expanding-window
 bivariate regressions, one technical signal at a time — on their 1966 to 2011
 sample. The volume signals come out positive and significant: VOL-2-12 gives
-0.66 percent out-of-sample R-squared, essentially matching their published
-0.33, and VOL-3-12 gives 0.76. So our pipeline finds predictability where the
-literature found it. But on the 2012 to 2025 extension, every single signal
-turns negative and insignificant."
+0.66 percent out-of-sample R-squared — same sign and significance as the
+published paper's 0.33 — and VOL-3-12 gives 0.76. So our pipeline finds
+predictability where the literature found it. But on the 2012 to 2025
+extension, every single signal turns negative and insignificant."
 
 **Slide 6 (1:15)** — "Now the main results on the extended sample. Nothing
 beats the prevailing mean at any horizon. The best model, LASSO, has an

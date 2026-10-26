@@ -129,7 +129,7 @@ add_title(s, "Step 1: we replicate Neely et al. (2014) — their result survives
           "Expanding-window bivariate regressions, one signal at a time, Clark–West test")
 add_bullets(s, [
     (f"On their 1966–2011 sample: VOL_2_12 R²_OOS = +{vol212['R2_OOS_pct']}% (CW p = {vol212['CW_p']}), "
-     f"VOL_3_12 = +{vol312['R2_OOS_pct']}% (p = {vol312['CW_p']}) — positive and significant, as published (+0.33%).", 0),
+     f"VOL_3_12 = +{vol312['R2_OOS_pct']}% (p = {vol312['CW_p']}) — positive and significant, same sign and order of magnitude as published (+0.33%).", 0),
     ("Volume-based (OBV) signals carry the predictive content; MA/MOM are weaker — the same pattern as the paper.", 0),
     ("This validates our data pipeline and test implementation before we extend the sample.", 0),
     (f"Extension 2012–2025: every signal turns negative/insignificant (VOL_3_12 = {ext['R2_OOS_pct']}%, p = {ext['CW_p']}).", 0),
