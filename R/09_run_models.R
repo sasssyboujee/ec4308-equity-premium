@@ -21,6 +21,8 @@
 args <- commandArgs(trailingOnly = TRUE)
 n_cores <- if (length(args) >= 1L) as.integer(args[1]) else
   min(6L, parallel::detectCores() - 1L)
+spec <- if (length(args) >= 2L) args[2] else "full"
+hs <- if (length(args) >= 3L) as.integer(strsplit(args[3], ",")[[1]]) else CONFIG$HORIZONS
 
 source("R/00_config.R")
 source("R/01_rolling_window.R")
@@ -31,10 +33,26 @@ source("R/10_combine_forecasts.R")
 panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
 panel$date <- as.Date(panel$date)
 y <- panel[[CONFIG$TARGET]]
-X <- as.matrix(panel[, setdiff(names(panel), c("date", CONFIG$TARGET))])
 
-cat(sprintf("Panel: %d rows | X: %d columns | running on %d cores\n",
-            nrow(panel), ncol(X), n_cores))
+# predictor-set variants (spec argument):
+#   full  -> 84 macro-lag columns + 14 technical signals (baseline design)
+#   tech  -> 14 technical signals only (Neely et al. 2014 bivariate-style set)
+#   macro -> 84 macro-lag columns only
+macro_cols <- setdiff(names(panel),
+                      c("date", CONFIG$TARGET, CONFIG$TECHNICAL_NAMES))
+tech_cols <- CONFIG$TECHNICAL_NAMES
+spec_cols <- switch(spec,
+  full  = c(macro_cols, tech_cols),
+  tech  = tech_cols,
+  macro = macro_cols,
+  stop("Unknown spec: ", spec)
+)
+X <- as.matrix(panel[, spec_cols])
+
+suffix <- if (spec == "full") "" else paste0("_", spec)
+
+cat(sprintf("Panel: %d rows | spec=%s | X: %d columns | %d cores | h in %s\n",
+            nrow(panel), spec, ncol(X), n_cores, paste(hs, collapse = ",")))
 
 BASE <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf")
 fn <- list(
@@ -48,7 +66,7 @@ fn <- list(
 )
 
 t_start <- Sys.time()
-for (h in CONFIG$HORIZONS) {
+for (h in hs) {
   cat(sprintf("\n=== h = %d ===\n", h))
   jobs <- lapply(BASE, function(nm) list(h = h, nm = nm))
   res <- parallel::mclapply(jobs, function(jb) {
@@ -80,7 +98,8 @@ for (h in CONFIG$HORIZONS) {
                                       gr_min_history = CONFIG$W_ROLLING / 4L,
                                       h = h)$forecast
 
-  dest <- file.path(CONFIG$DATA_PROCESSED, sprintf("forecasts_h%d.csv", h))
+  dest <- file.path(CONFIG$DATA_PROCESSED,
+                    sprintf("forecasts_h%d%s.csv", h, suffix))
   write.csv(out, dest, row.names = FALSE)
   cat(sprintf("Wrote: %s (%d OOS months)\n", dest, nrow(out)))
 }

@@ -1,0 +1,187 @@
+% =============================================================================
+% EC4308 Final Project Report
+% "Forecasting the Equity Risk Premium Out-of-Sample: Regularized Machine
+%  Learning, Technical Indicators & Tactical Asset Allocation"
+% Format: <= 15 pages, 11pt, 1.5 line spacing (Prof. Denis's requirements)
+% Build:  latexmk -pdf report/main.tex
+% =============================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{setspace}
+\usepackage{threeparttable}
+\usepackage{longtable}
+\usepackage{pdflscape}
+
+\onehalfspacing
+
+\title{\vspace{-1.2cm}Forecasting the Equity Risk Premium Out-of-Sample:\\[2mm]
+Regularized Machine Learning, Technical Indicators and\\Tactical Asset Allocation\vspace{-2mm}}
+\author{Leon \quad En Shao \quad Sasinthiran Kannan \quad Vienna\\
+EC4308 Machine Learning and Economic Forecasting, AY 2026/2027 Semester 1}
+\date{9 November 2026}
+
+\begin{document}
+\maketitle
+\vspace{-1.6cm}
+
+\begin{abstract}
+\noindent We re-examine out-of-sample predictability of the US equity premium using a
+fixed 240-month rolling-window design on data spanning February 1951 to December 2025.
+The predictor set combines the fourteen Goyal--Welch (2008) macroeconomic variables
+(with one to six monthly lags) and the fourteen technical indicators of
+Neely, Rapach, Tu and Zhou (2014), which we reproduce from raw price and volume
+data with a 99.98\% signal-month match to the published series. Against the
+prevailing historical mean benchmark we evaluate $\ell_1$-penalized least
+squares (LASSO and post-LASSO), Ridge, Elastic Net, principal components and
+partial least squares regressions, and random forests, together with equal-weight
+and constrained Granger--Ramanathan forecast combinations, at horizons
+$h\in\{1,3,12\}$. Statistical accuracy is assessed with the Diebold--Mariano
+(1995) test on squared and absolute errors (Clark--West as an appendix check),
+and economic value with a binary switching strategy and a mean--variance
+investor, both net of transaction costs. [KEY FINDINGS -- TO BE FILLED AFTER
+PHASE 3 EVALUATION.]
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+% WRITTEN LAST per the course guidelines: state research questions, motivation
+% (Goyal-Welch 2008/2024 failure of fundamentals; Neely et al. 2014 technical
+% indicators; Gu-Kelly-Xiu 2020 ML), summarize results, outline the paper.
+[TO BE FILLED AFTER PHASE 3 -- SEE \ref{sec:results}.]
+
+\section{Data}\label{sec:data}
+
+\subsection{Sources and sample}\label{sec:data:sources}
+The target variable is the monthly log equity premium on the S\&P 500,
+$y_t = 100\,(\ln(1+R^m_t) - \ln(1+R^f_t))$, where $R^m_t$ is the value-weighted
+S\&P 500 return including dividends and $R^f_t$ the risk-free rate, taken from
+the continuously updated Goyal--Welch--Zafirov (2024) dataset (monthly
+observations 1871:01--2025:12). The premium is expressed in percent per month;
+over the estimation sample its mean is 0.66\% with a standard deviation of
+4.21\%. The fourteen macroeconomic predictors follow Goyal and Welch (2008):
+dividend-price ratio, dividend yield, earnings-price ratio, dividend payout
+ratio, stock variance, book-to-market, net equity expansion, Treasury bill
+rate, long-term yield, long-term return, term spread, default yield spread,
+default return spread, and inflation. Each macro predictor enters with one to
+six monthly lags.
+
+The fourteen technical indicators follow Neely et al.\ (2014): six moving
+average rules $\mathrm{MA}(j,m)$ with $j\in\{1,2,3\}$ and $m\in\{9,12\}$
+comparing short and long moving averages of the index level, two momentum
+rules $\mathrm{MOM}(m)$, $m\in\{9,12\}$, and six on-balance volume rules
+$\mathrm{VOL}(j,m)$ comparing moving averages of on-balance volume. Each
+indicator is a binary signal (1 = hold equities). We compute the signals from
+the raw index level and monthly S\&P 500 volume: the paper's own volume series
+for 1950--2011 and monthly average daily volume from Yahoo Finance for
+2012--2025 (the two series have correlation 0.9999 on their overlap, and the
+volume-based signals are invariant to a constant volume rescaling). Against
+the published signals of Neely et al.\ (2014) over their 1950:12--2011:12
+sample, 12 of the 14 signals match exactly and the remaining two match in
+99.9\% of months; the two mismatching months are documented data revisions.
+
+\subsection{Alignment and sample period}\label{sec:data:align}
+Row $t$ of the panel holds the premium \emph{earned} in month $t$ together
+with predictors \emph{observable at the end of month $t$}. Macro lag columns
+satisfy $x^{\mathrm{lag}\,k}_t = x_{t-k}$, $k=1,\dots,6$; technical signals at
+row $t$ use price and volume data through month $t$ only, so no forecast uses
+information unavailable at its origin. The sample is the first month in which
+every column is non-missing (1951:02, driven by the twelve-month burn-in of
+the volume rules) through 2025:12, giving $T=899$ monthly observations.
+Table~\ref{tab:table1} reports summary statistics and augmented
+Dickey--Fuller (BIC lag selection, intercept and trend) tests.
+
+\input{../output/tables/table1_tex.tex}
+
+\section{Methodology}\label{sec:method}
+
+\subsection{Rolling-window forecasting design}\label{sec:method:design}
+All models are estimated on a fixed 240-month (20-year) rolling window and
+produce an $h$-month-ahead forecast of the premium, $h\in\{1,3,12\}$. The
+first out-of-sample forecast targets February 1971, leaving 659 out-of-sample
+months at $h=1$. The benchmark is the prevailing (historical) mean premium
+computed through the forecast origin, the only admissible benchmark for this
+exercise: OLS benchmark forecasts fail out-of-sample and are not used.
+
+\subsection{Models}\label{sec:method:models}
+We estimate seven models within each window: (i) LASSO with the theoretical,
+data-driven penalty of \texttt{hdm::rlasso} (no cross-validation required);
+(ii) post-LASSO, i.e.\ OLS refit on the LASSO-selected support; (iii) Ridge
+and (iv) Elastic Net ($\alpha=0.5$) with the penalty chosen by ten-fold
+cross-validation \emph{inside the training window} (no information from the
+test month is ever used); (v) principal components regression and (vi)
+partial least squares with the number of components selected by
+cross-validated PRESS (scaled inputs, at most 20 components); and (vii) a
+random forest (500 trees, $m_{\mathrm{try}}=p/3$, minimum node size 5, fixed
+seed, single-threaded for exact reproducibility). All models use the same
+$98$-predictor matrix (84 macro-lag columns plus 14 technical signals); the
+expanded Goyal--Welch--Zafirov (2024) predictors are held out as a
+robustness variant.
+
+\subsection{Forecast combinations}\label{sec:method:combos}
+We combine the seven model forecasts with (i) the simple equal-weight average
+and (ii) a constrained Granger--Ramanathan (1984) regression: at each origin
+the weights solve $\min_w \|y-Fw\|^2$ subject to $\sum_i w_i = 1$ and
+$w_i\ge0$, estimated only on past out-of-sample forecast errors known at that
+origin (targets $\le$ origin). Before 60 usable observations accumulate,
+equal weights are used.
+
+\subsection{Evaluation}\label{sec:method:eval}
+Statistical accuracy is measured by out-of-sample RMSE and MAE and the
+Campbell--Thompson (2008) $R^2_{\mathrm{OOS}} = 1 - \sum e_t^2 / \sum
+e_{t,\mathrm{PM}}^2$ against the prevailing mean. Significance is tested with
+the Diebold--Mariano (1995) statistic on squared and absolute error
+differentials, with Newey--West long-run variance (lag $h-1$); the
+Clark--West (2007) adjusted-MSPE test is reported in the appendix for the
+nested comparison against the benchmark. Economic value is assessed with two
+strategies net of transaction costs (baseline 10 bps, sensitivity 5 and
+20 bps): (i) a binary switching strategy that holds the S\&P 500 when the
+$h$-month-ahead premium forecast is positive and three-month Treasury bills
+otherwise, reporting terminal wealth, annualized Sharpe ratio, maximum
+drawdown, and turnover; and (ii) a mean--variance investor with risk aversion
+$\gamma=3$ who allocates $w_t = (1/\gamma)\,\hat y_t / \hat\sigma^2_t$ to
+equities, clamped to $[0,1.5]$, where $\hat\sigma^2_t$ is realized variance
+over the previous 60 months; the certainty-equivalent return gain
+$\Delta U$ relative to the benchmark allocation is reported.
+
+\section{Results}\label{sec:results}
+% Table 2 (statistical accuracy), Figure 2 (R2OOS), Table 3 (economic value),
+% Figure 1 (switching wealth), Figure 3 (GR weights) -- filled after Phase 3.
+[TO BE FILLED AFTER PHASE 3 EVALUATION.]
+
+\section{Conclusion}\label{sec:conclusion}
+[TO BE FILLED AFTER PHASE 3 -- summarize, limitations, future work.]
+
+\appendix
+\section{Clark--West appendix test}\label{app:cw}
+[TO BE FILLED AFTER PHASE 3.]
+
+\begin{thebibliography}{9}
+\bibitem{gw2008} Goyal, A., and I. Welch (2008). A comprehensive look at the
+empirical performance of equity premium prediction. \emph{Review of Financial
+Studies} 21(4), 1455--1508.
+\bibitem{gwz2024} Goyal, A., I. Welch, and A. Zafirov (2024). A comprehensive
+2024 look at the empirical performance of equity premium prediction.
+\emph{Review of Financial Studies}.
+\bibitem{neely2014} Neely, C. J., D. E. Rapach, J. Tu, and G. Zhou (2014).
+Forecasting the equity risk premium: The role of technical indicators.
+\emph{Management Science} 60(7), 1772--1791.
+\bibitem{gkx2020} Gu, S., B. Kelly, and D. Xiu (2020). Empirical asset pricing
+via machine learning. \emph{Review of Financial Studies} 33(5), 2223--2273.
+\bibitem{ct2008} Campbell, J. Y., and S. B. Thompson (2008). Predicting excess
+stock returns out of sample: Can anything beat the historical average?
+\emph{Review of Financial Studies} 21(4), 1509--1531.
+\bibitem{dm1995} Diebold, F. X., and R. S. Mariano (1995). Comparing predictive
+accuracy. \emph{Journal of Business \& Economic Statistics} 13(3), 253--263.
+\bibitem{cw2007} Clark, T. E., and K. D. West (2007). Approximately normal
+tests for equal predictive accuracy in nested models. \emph{Journal of
+Econometrics} 138(1), 291--311.
+\bibitem{gr1984} Granger, C. W. J., and R. Ramanathan (1984). Improved methods
+of combining forecasts. \emph{Journal of Forecasting} 3(2), 197--204.
+\end{thebibliography}
+
+\end{document}

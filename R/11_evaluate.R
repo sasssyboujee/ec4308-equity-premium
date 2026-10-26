@@ -19,6 +19,9 @@
 # Usage (repo root):  Rscript R/11_evaluate.R
 # =============================================================================
 
+args <- commandArgs(trailingOnly = TRUE)
+hs <- if (length(args) >= 1L) as.integer(args) else CONFIG$HORIZONS
+
 suppressMessages({library(readxl)})
 source("R/00_config.R")
 source("R/03_diebold_mariano.R")
@@ -44,7 +47,7 @@ sigma2_hat_pct2 <- rolling_variance(equity_ret_pct, window = CONFIG$VAR_WINDOW)
 MODELS <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf",
             "equal_comb", "gr_comb")
 
-for (h in CONFIG$HORIZONS) {
+for (h in hs) {
   fc <- read.csv(file.path(CONFIG$DATA_PROCESSED,
                            sprintf("forecasts_h%d.csv", h)))
   idx <- fc$target_index
@@ -65,6 +68,8 @@ for (h in CONFIG$HORIZONS) {
       RMSE = sqrt(mean(e^2)), RMSE_pm = sqrt(mean(epm^2)),
       MAE = mean(abs(e)), MAE_pm = mean(abs(epm)),
       R2_OOS_pct = round(r2oos, 3),
+      HR = round(mean(sign(f) == sign(actual)), 3),        # direction of change
+      HR_pm = round(mean(sign(fc$pm) == sign(actual)), 3),
       DM_RMSE_stat = round(dm2$statistic, 3), DM_RMSE_p = round(dm2$p.value, 4),
       DM_MAE_stat = round(dm1$statistic, 3), DM_MAE_p = round(dm1$p.value, 4),
       CW_stat = round(cw$statistic, 3), CW_p = round(cw$p.value, 4)
@@ -113,6 +118,35 @@ for (h in CONFIG$HORIZONS) {
     )
   })
   tab3 <- do.call(rbind, econ)
+
+  # ---- reference rows: buy-and-hold and the PM-driven strategies -------------
+  bh <- switching_backtest(eq_r, tb_r, rep(1, length(eq_r)), fee_bps = 10)
+  sw_pm <- switching_backtest(eq_r, tb_r, fc$pm, fee_bps = 10)
+  mv_pm <- mv_utility_gain(eq_r, tb_r, fc$pm, fc$pm, s2,
+                           gamma = CONFIG$GAMMA, w_min = CONFIG$W_MIN,
+                           w_max = CONFIG$W_MAX, fee_bps = 10)
+  ref_rows <- rbind(
+    data.frame(model = "Buy-and-Hold", horizon = h,
+      sw_wealth_5bps = NA, sw_wealth_10bps = bh$terminal_wealth,
+      sw_wealth_20bps = NA, sw_wealth_bh = bh$terminal_wealth_bh,
+      sw_sharpe_10bps = round(bh$sharpe_annual, 3),
+      sw_maxdd_10bps = round(bh$max_drawdown, 4),
+      sw_switches = 0, sw_eq_exposure = 1,
+      mv_deltaU_5bps_pct = NA, mv_deltaU_10bps_pct = NA,
+      mv_deltaU_20bps_pct = NA, mv_cer_model_10bps_pct = NA,
+      mv_sharpe_10bps = NA, mv_mean_w = NA),
+    data.frame(model = "Prevailing Mean", horizon = h,
+      sw_wealth_5bps = NA, sw_wealth_10bps = round(sw_pm$terminal_wealth, 3),
+      sw_wealth_20bps = NA, sw_wealth_bh = round(sw_pm$terminal_wealth_bh, 3),
+      sw_sharpe_10bps = round(sw_pm$sharpe_annual, 3),
+      sw_maxdd_10bps = round(sw_pm$max_drawdown, 4),
+      sw_switches = sw_pm$n_switches, sw_eq_exposure = round(sw_pm$equity_exposure, 3),
+      mv_deltaU_5bps_pct = 0, mv_deltaU_10bps_pct = 0, mv_deltaU_20bps_pct = 0,
+      mv_cer_model_10bps_pct = round(100 * mv_pm$cer_model, 2),
+      mv_sharpe_10bps = round(mv_pm$sharpe_model, 3),
+      mv_mean_w = round(mv_pm$mean_equity_wt, 3))
+  )
+  tab3 <- rbind(tab3, ref_rows)
 
   write.csv(tab2, file.path(CONFIG$OUTPUT_TABLES, sprintf("table2_h%d.csv", h)),
             row.names = FALSE)
