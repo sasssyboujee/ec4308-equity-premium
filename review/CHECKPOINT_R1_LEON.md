@@ -64,6 +64,13 @@ Rscript data/03_validate_signals.R  # re-run published-signal check
    *Interim h=1 numbers:* expanded rlasso −8.2% (base −8.8%), GR −8.9%
    (base −10.0%), pcr −14.4% — but ridge −35.6% and PLS −56.8% get worse.
    Headline unchanged: nothing beats the prevailing mean either way.
+   *Final numbers (all horizons, Mon 26 Oct ~19:00):* best expanded model by
+   horizon — h=1 rlasso −8.2%, h=3 GR combination −7.7% (base −8.7%),
+   h=12 rlasso −10.4% (base −11.5%). The expanded set never changes the
+   conclusion; it helps marginally at h=3/h=12 and hurts dense models
+   (ridge −39%, PLS −60% at h=12). My recommendation stays: mention the
+   expanded set as an unreported robustness check, don't add it to the
+   appendix. Full table: `data/processed/expanded_variant_summary.csv`.
 3. **Lag convention** = README convention: `x_lagk[t] = x[t-k]`, k = 1..6. So
    "lag 1" is the value from one month ago. (Neely et al. use only one lag,
    effectively x[t−1] in our indexing.)

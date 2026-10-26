@@ -17,3 +17,12 @@
 "rf","expanded (158 cols)",3,-43.08
 "equal_comb","expanded (158 cols)",3,-19.56
 "gr_comb","expanded (158 cols)",3,-7.66
+"rlasso","expanded (158 cols)",12,-10.42
+"postlasso","expanded (158 cols)",12,-22.18
+"ridge","expanded (158 cols)",12,-39.42
+"enet","expanded (158 cols)",12,-35.59
+"pcr","expanded (158 cols)",12,-20.85
+"pls","expanded (158 cols)",12,-59.85
+"rf","expanded (158 cols)",12,-44.5
+"equal_comb","expanded (158 cols)",12,-24.09
+"gr_comb","expanded (158 cols)",12,-11.75
