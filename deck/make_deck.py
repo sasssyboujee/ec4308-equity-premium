@@ -153,7 +153,7 @@ s = prs.slides.add_slide(BLANK)
 add_title(s, "Result 2: forecasts still have economic value — drawdown control")
 add_pic(s, os.path.join(FIG, "figure1_wealth.png"), 0.6, 1.4, width=7.2)
 add_bullets(s, [
-    (f"Switching (10 bps): model strategies cap the max drawdown at {post['sw_maxdd_10bps'][1:]} vs buy-and-hold −0.55; terminal wealth ${post['sw_wealth_10bps']} vs ${bh['sw_wealth_bh']} for buy-and-hold.", 0),
+    (f"Switching (10 bps): model strategies cap the max drawdown at {float(post['sw_maxdd_10bps'])*100:.0f}% vs buy-and-hold {float(bh['sw_maxdd_10bps'])*100:.0f}%; terminal wealth ${post['sw_wealth_10bps']} vs ${bh['sw_wealth_bh']} for buy-and-hold.", 0),
     (f"Mean–variance investor (γ=3): post-LASSO ΔU = +{post['mv_deltaU_10bps_pct']}% p.a., rlasso +{next(r['mv_deltaU_10bps_pct'] for r in t3 if r['model']=='rlasso')}% p.a., GR +{gr3['mv_deltaU_10bps_pct']}% p.a. (10 bps net).", 0),
     ("Forecasts earn their keep as risk-management signals, not as point-forecast improvements.", 0),
 ], left=8.0, top=1.4, width=4.9, height=5.0)
