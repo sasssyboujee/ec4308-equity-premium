@@ -162,12 +162,13 @@ add_notes(s, "Sasi (1:15): Sharpe vs wealth trade-off; ΔU interpretation; fee s
 # ---- 8. interpretation -------------------------------------------------------------
 s = prs.slides.add_slide(BLANK)
 add_title(s, "Why did predictability decay?")
+add_pic(s, os.path.join(FIG, "figure4_subperiods.png"), 0.6, 1.5, width=6.2)
 add_bullets(s, [
     ("Recession months drive the signal value: volume/MA rules earn their R² in a handful of crisis months (2000–02, 2008–09).", 0),
     ("Post-2011: fewer deep drawdowns, a passive-dominated market, and faster arbitrage of published signals.", 0),
     ("Regularized multivariate fits overfit relative to the simple bivariate design — shrinkage toward the mean is aggressive.", 0),
     ("Consistent with Goyal–Welch–Zafirov (2024): the premium remains extremely hard to predict out-of-sample.", 0),
-])
+], left=7.0, top=1.5, width=5.9, height=5.0)
 add_notes(s, "Vienna (1:00): economic interpretation, connect to the literature.")
 
 # ---- 9. conclusion -------------------------------------------------------------------

@@ -14,11 +14,22 @@
 # after the start date -- asserted).
 #
 # Usage (repo root):  Rscript data/01_build_panel.R
+#                     Rscript data/01_build_panel.R expanded [out_file]
+#        (second form builds the panel with the 10 expanded GWZ-2024
+#         predictors enabled, optionally to a custom output path)
 # =============================================================================
 
 suppressMessages({library(readxl)})
 source("R/00_config.R")
 source("R/06_technical_indicators.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) >= 1L && args[1] == "expanded") {
+  CONFIG$USE_EXPANDED <- TRUE
+}
+panel_out <- if (length(args) >= 2L) args[2] else
+  file.path(CONFIG$DATA_PROCESSED, "panel.csv")
+codebook_out <- sub("panel", "codebook", panel_out)
 
 cat("== Build aligned panel ==\n")
 
@@ -124,12 +135,12 @@ cb <- rbind(
   codebook, tech_cb
 )
 
-write.csv(panel, file.path(CONFIG$DATA_PROCESSED, "panel.csv"), row.names = FALSE)
-write.csv(cb, file.path(CONFIG$DATA_PROCESSED, "codebook.csv"), row.names = FALSE)
+write.csv(panel, panel_out, row.names = FALSE)
+write.csv(cb, codebook_out, row.names = FALSE)
 
 cat(sprintf("Panel: %d rows (%s .. %s), %d columns\n",
             nrow(panel), panel$date[1], tail(panel$date, 1), ncol(panel)))
 cat(sprintf("Target sd: %.2f pp | macro lag cols: %d | technical cols: %d\n",
             sd(panel[[CONFIG$TARGET]]), nrow(codebook), length(CONFIG$TECHNICAL_NAMES)))
-cat("Wrote:", file.path(CONFIG$DATA_PROCESSED, "panel.csv"), "\n")
-cat("Wrote:", file.path(CONFIG$DATA_PROCESSED, "codebook.csv"), "\n")
+cat("Wrote:", panel_out, "\n")
+cat("Wrote:", codebook_out, "\n")

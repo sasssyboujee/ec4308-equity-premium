@@ -29,8 +29,12 @@ n_cores <- if (length(args) >= 1L) as.integer(args[1]) else
   min(6L, parallel::detectCores() - 1L)
 spec <- if (length(args) >= 2L) args[2] else "full"
 hs <- if (length(args) >= 3L) as.integer(strsplit(args[3], ",")[[1]]) else CONFIG$HORIZONS
+panel_file <- if (length(args) >= 4L) args[4] else
+  file.path(CONFIG$DATA_PROCESSED, "panel.csv")
+out_suffix <- if (length(args) >= 5L) args[5] else
+  (if (spec == "full") "" else paste0("_", spec))
 
-panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
+panel <- read.csv(panel_file)
 panel$date <- as.Date(panel$date)
 y <- panel[[CONFIG$TARGET]]
 
@@ -49,7 +53,6 @@ spec_cols <- switch(spec,
 )
 X <- as.matrix(panel[, spec_cols])
 
-suffix <- if (spec == "full") "" else paste0("_", spec)
 
 cat(sprintf("Panel: %d rows | spec=%s | X: %d columns | %d cores | h in %s\n",
             nrow(panel), spec, ncol(X), n_cores, paste(hs, collapse = ",")))
@@ -99,7 +102,7 @@ for (h in hs) {
                                       h = h)$forecast
 
   dest <- file.path(CONFIG$DATA_PROCESSED,
-                    sprintf("forecasts_h%d%s.csv", h, suffix))
+                    sprintf("forecasts_h%d%s.csv", h, out_suffix))
   write.csv(out, dest, row.names = FALSE)
   cat(sprintf("Wrote: %s (%d OOS months)\n", dest, nrow(out)))
 }
