@@ -1,5 +1,22 @@
 # EC4308 Project Roadmap & Milestones (Post-Feedback Edition)
 
+> **AI-handoff status (Mon 26 Oct, ~16:20 SGT)** — the whole pipeline now runs
+> under AI execution with human review checkpoints in `review/`:
+> - ✅ **Phase 1 (data) done**: aligned panel 1951-02→2025-12 (899 mo, 98 predictors),
+>   Neely signals replicate the published series at **99.98%**, Table 1 built.
+>   → review packet `review/CHECKPOINT_R1_LEON.md` (Leon, due Wed 28 Oct).
+> - ✅ **Phase 2 (models) done**: rlasso/post-LASSO, Ridge, ENet, PCR, PLS, RF,
+>   1/N + constrained GR ensembles, spec variants (full/tech/macro), Neely
+>   bivariate replication (reproduces their positive 1966–2011 VOL-signal
+>   findings; predictability vanishes in 2012–2025). h=1 results in;
+>   h=3/12 running. → packet `review/CHECKPOINT_R2_ENSHAO.md` (En Shao, due Fri 30 Oct).
+> - 🔄 **Phase 3 (evaluation)**: h=1 Tables 2–3 + hit rates done; h=3/12 tables
+>   and figures pending the model run. → packet for Sasi next.
+> - ⏳ **Phase 4 (report/deck)**: LaTeX skeleton at `report/main.tex`; deck
+>   generator at `deck/make_deck.py`. → packet for Vienna.
+>
+> Commits are pushed to `main` as approved.
+
 **Module**: EC4308 – Machine Learning and Economic Forecasting (AY 2026/2027 Sem 1)  
 **Topic**: *Forecasting the Equity Risk Premium Out-of-Sample: Regularized ML, Technical Indicators & Tactical Asset Allocation*  
 **Instructor**: Prof. Denis Tkachenko  
