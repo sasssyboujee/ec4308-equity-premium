@@ -17,6 +17,14 @@
 >   10-slide deck with per-speaker notes (`deck/EC4308_Presentation.pptx`),
 >   submission zip staged (`submission/EC4308_Project_Submission.zip`).
 >   → packet `review/CHECKPOINT_R4_VIENNA.md` (Vienna, due Sat 7 Nov).
+> - ✅ **From-scratch reproducibility verified (Mon 26 Oct, ~17:30)**: the
+>   submission zip was unzipped into a clean directory and the full README
+>   chain re-executed (panel → Table 1 → signal validation → all models →
+>   evaluation → figures → LaTeX → deck → zip). All 17 CSV artifacts
+>   IDENTICAL, all figures byte-identical, report PDF text-identical (only
+>   the embedded creation timestamp differs). Two real bugs were caught and
+>   fixed by this run (args/source ordering in `09_run_models.R`, missing
+>   `main.tex` in the zip).
 > - ⏳ **Remaining (human)**: the four reviews above; fix findings; Sasi uploads
 >   to Canvas Mon 9 Nov; Week-13 rehearsal; Reading-Week peer review.
 >
