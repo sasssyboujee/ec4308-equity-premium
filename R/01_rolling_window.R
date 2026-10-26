@@ -36,7 +36,9 @@ rolling_oos <- function(y, X, h = 1L, w = 240L, model_fn, ...) {
     tr    <- seq.int(o - w + 1L, o)              # training rows
     X_new <- X[o, , drop = FALSE]                # predictors known at end of month o
     fc[i] <- as.numeric(model_fn(y = y[tr], X = X[tr, , drop = FALSE],
-                                 X_new = X_new, ...))
+                                 X_new = X_new,
+                                 origin = o, target_index = target_idx[i],
+                                 ...))
   }
 
   data.frame(target_index = target_idx, forecast = fc)

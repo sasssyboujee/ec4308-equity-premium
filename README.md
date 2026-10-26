@@ -56,6 +56,14 @@ R/                      All R scripts (00_config, modules 01-07, 99_demo)
   ├── 05_mv_utility.R      mean-variance investor, CER gain (Delta U)
   ├── 06_technical_indicators.R Neely et al. (2014) 14 signals (MA/MOM/VOL)
   ├── 07_unitroot.R        ADF test (BIC lags, MacKinnon critical values)
+  ├── 08_models.R          ML model functions (rlasso/post-LASSO, ridge, enet,
+  │                        PCR, PLS, random forest) for the harness API
+  ├── 09_run_models.R      rolling OOS run, all models x h in {1,3,12}
+  ├── 10_combine_forecasts.R 1/N and constrained Granger-Ramanathan combiners
+  ├── 11_evaluate.R        Tables 2-3: accuracy, DM, Clark-West, economic value
+  ├── 12_clark_west.R      Clark-West (2007) appendix test
+  ├── 13_figures.R         report figures 1-3
+  ├── 98_smoke_models.R    fast synthetic-data check of every model function
   └── 99_demo_synthetic.R  end-to-end smoke test on synthetic data
 data/
   ├── 00_fetch_technical.R provenance + fetch of technical inputs
