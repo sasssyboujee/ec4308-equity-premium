@@ -89,7 +89,7 @@ s = prs.slides.add_slide(BLANK)
 add_title(s, "Motivation: Can anything beat the historical average?", "Goyal–Welch (2008, 2024) vs Neely, Rapach, Tu & Zhou (2014)")
 add_bullets(s, [
     ("The equity premium is the single most important input for portfolio choice — 1 month of lead time is economically valuable.", 0),
-    ("Goyal & Welch: essentially no macro fundamental beats the prevailing mean out-of-sample; Goyal–Welch–Zafirov (2024) reach the same conclusion with 57 predictors.", 0),
+    ("Goyal & Welch: essentially no macro fundamental beats the prevailing mean out-of-sample; Goyal–Welch–Zafirov (2024) reach the same conclusion with an expanded dataset of 57 monthly series.", 0),
     ("Neely et al. (2014): 14 technical indicators (MA, MOM, OBV) DO predict the premium out-of-sample on 1966–2011.", 0),
     ("Our question: with modern regularized ML, do technical indicators + macro lags beat the prevailing mean on the extended 1951–2025 sample?", 0),
     ("We replicate Neely et al. exactly (signals match 99.98%), then extend the sample to 2025.", 0),
@@ -143,7 +143,7 @@ add_pic(s, os.path.join(FIG, "figure2_r2oos.png"), 0.6, 1.35, width=6.4)
 add_bullets(s, [
     ("All models show NEGATIVE R²_OOS at every horizon: the Goyal–Welch result, reproduced with modern ML.", 0),
     (f"Best at h=1: GR combination R²_OOS = {gr['R2_OOS_pct']}%, rlasso = {rl['R2_OOS_pct']}% (PM RMSE 4.40 vs {gr['RMSE'][:5]}).", 0),
-    ("Hit rates 54–58% vs PM 61% — the direction of the premium is also hard to call.", 0),
+    ("Hit rates 54–58% vs PM 60% — the direction of the premium is also hard to call.", 0),
     ("Post-2000 (and post-2011) predictability decay drives the result: the information is real but transient.", 0),
 ], left=7.3, top=1.35, width=5.6, height=5.0)
 add_notes(s, "Sasi (1:15): negative results are results — correct execution matters more than a positive sign. Walk through the bar chart.")

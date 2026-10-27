@@ -121,6 +121,32 @@ p3 <- ggplot(wdf3_long, aes(date, weight, fill = model)) +
 ggsave(file.path(CONFIG$OUTPUT_FIGURES, "figure3_gr_weights.png"), p3,
        width = 8, height = 4.5, dpi = 300)
 
+# ---- Figure 4: LASSO R2_OOS by subperiod (used on deck slide 8) --------------
+fc1 <- read.csv(file.path(CONFIG$DATA_PROCESSED, "forecasts_h1.csv"))
+fc1$date <- panel$date[fc1$target_index]
+blocks <- list("1971-1999" = c("1971-02-01", "1999-12-01"),
+               "2000-2011" = c("2000-01-01", "2011-12-01"),
+               "2012-2025" = c("2012-01-01", "2025-12-01"))
+d4 <- do.call(rbind, lapply(names(blocks), function(b) {
+  keep <- fc1$date >= as.Date(blocks[[b]][1]) & fc1$date <= as.Date(blocks[[b]][2])
+  a <- y[fc1$target_index[keep]]
+  data.frame(block = b,
+             R2 = 100 * (1 - sum((a - fc1$rlasso[keep])^2) /
+                            sum((a - fc1$pm[keep])^2)))
+}))
+d4$block <- factor(d4$block, levels = names(blocks))
+p4 <- ggplot(d4, aes(block, R2)) +
+  geom_col(fill = "#1F365C", width = 0.6) +
+  geom_hline(yintercept = 0, linewidth = 0.3) +
+  geom_text(aes(label = sprintf("%.1f", R2)),
+            vjust = ifelse(d4$R2 < 0, 1.4, -0.4), size = 4) +
+  labs(x = NULL, y = "Out-of-sample R² (%)",
+       title = "LASSO out-of-sample R² by subperiod (h = 1)",
+       subtitle = "Closest to the prevailing mean exactly in the 2000–2011 crisis decade") +
+  theme_bw(base_size = 12)
+ggsave(file.path(CONFIG$OUTPUT_FIGURES, "figure4_subperiods.png"), p4,
+       width = 6, height = 3.6, dpi = 300)
+
 cat("Wrote figures to", CONFIG$OUTPUT_FIGURES, "\n")
 cat("Best model by horizon (R2_OOS):\n")
 print(do.call(rbind, lapply(split(r2df, r2df$horizon),

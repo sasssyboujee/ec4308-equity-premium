@@ -16,7 +16,8 @@ the methods, the results and what we learned."
 
 **Slide 2 (1:00)** — "Here's the puzzle. Goyal and Welch showed that
 essentially no macroeconomic variable beats the historical average out of
-sample — and their 2024 update with 57 predictors reaches the same verdict.
+sample — and their 2024 update with an expanded dataset of 57 monthly
+series reaches the same verdict.
 Neely et al. found an exception: technical indicators, especially volume-based
 ones, did predict the premium from 1966 to 2011. Our question: once you feed
 the macro variables and the technical signals through modern regularized ML,
