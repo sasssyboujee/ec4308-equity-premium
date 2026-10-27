@@ -11,7 +11,7 @@ All fixes below are applied, re-verified, committed and pushed.
 | Area | Verdict | Critical | Warnings | Notes |
 |---|---|---|---|---|
 | Data layer | **PASS** | 0 | 0 | 1 (volume-splice wording) |
-| Models & ensembles | *(pending — auditor still running)* | — | — | — |
+| Models & ensembles | **PASS** | 0 | 1 (fixed) | 1 (hdm predict quirk, not our bug) |
 | Statistics & evaluation | **PASS** | 0 | 0 | 3 (numerical conventions, documented) |
 | Report, deck & zip | **PASS** | 0 | 2 (fixed) | 2 (fixed) |
 | Coordinating-agent passes | **PASS** | 0 | 0 | — |
@@ -30,6 +30,26 @@ All fixes below are applied, re-verified, committed and pushed.
 2. Everything else PASSED: panel integrity (899×100, 0 NAs, target
    = 100·(ret−Rfree) to machine precision), lag construction, no-lookahead,
    signal validation (99.9805%), volume chain continuity, Table 1 moments.
+
+### Models & ensembles (auditor: independent subagent)
+8/8 checks PASS: rlasso manual forecast ≡ hdm's predict (5/5 post=FALSE,
+4/5 post=TRUE; the 5th case is the degenerate zero-selection edge below);
+glmnet CV strictly in-window, seeded, no leakage paths; PCR/PLS PRESS
+indexing verified against an independent manual 10-fold CV (no off-by-one);
+ranger settings + seed determinism verified; clean_X drops constant columns
+identically from X and X_new; GR combination no-lookahead proven empirically
+for h=1/3/12 (future-row perturbation leaves past forecasts unchanged) and
+constraints verified on every row (Σw=1 within 1e-9, w≥0); harness indexing
+verified call-by-call with a recording model_fn (268 calls).
+1. **WARNING (fixed) — post-LASSO zero-selection edge:** when LASSO selects
+   zero variables, hdm stores all-zero coefficients but `$intercept =
+   mean(y)`; our manual forecast returned 0 instead of the intercept.
+   **Fix:** one-line guard in `rlasso_forecast_fn` (R/08_models.R:62-68);
+   verified on a forced degenerate case (guard −0.190782 = hdm −0.190782).
+   Never triggered in production (0 exact-zero forecasts in any CSV).
+2. **NOTE — hdm 0.3.2 quirk:** hdm's own `predict.rlasso` misbehaves on
+   1-row matrix newdata (returns a 9×9 matrix); our manual formula avoids
+   calling it, so we are unaffected.
 
 ### Statistics & evaluation (auditor: independent subagent)
 All PASS. Notes (documented conventions, immaterial):
@@ -94,4 +114,4 @@ rerun from the same raw data reproduces every number bit-for-bit.
 | Signals match published 99.98% | `signal_validation.csv` (2/10,262 months) |
 | Determinism | two independent runs bit-identical; from-scratch zip rerun identical |
 
-*Models-layer section to be appended when the fourth auditor reports.*
+

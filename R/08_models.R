@@ -58,7 +58,14 @@ rlasso_forecast_fn <- function(y, X, X_new, post = FALSE, ...) {
   fit <- hdm::rlasso(x = cl$X, y = as.numeric(y), post = post)
   # coefficients: named vector, first element "(Intercept)".
   # (Manual computation = identical to hdm's predict method, but transparent.)
-  as.numeric(fit$coefficients[1L] + cl$X_new %*% fit$coefficients[-1L])
+  b <- fit$coefficients
+  if (all(b[-1L] == 0)) {
+    # degenerate window: LASSO selected no variables -> hdm's forecast is
+    # the intercept only (= mean(y) for post=FALSE); guard so we never
+    # silently return 0. (Never triggered in production, added per audit.)
+    return(as.numeric(fit$intercept))
+  }
+  as.numeric(b[1L] + cl$X_new %*% b[-1L])
 }
 
 postlasso_forecast_fn <- function(y, X, X_new, ...) {
