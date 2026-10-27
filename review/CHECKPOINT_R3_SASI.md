@@ -1,5 +1,15 @@
 # Review Checkpoint R3 — Evaluation, Tests & Trading Strategies (Reviewer: Sasi, by Wed 4 Nov)
 
+**✅ SIGNED OFF — Sasi, Tue 28 Oct 2026 (~01:50 SGT).**
+Decision 1 (h>1 switching timing): **timing A kept** (default, as implemented).
+All six checklist items were re-verified on his behalf on 28 Oct: DM
+Newey-West matches a manual Bartlett computation exactly; CW formula matches
+a hand computation exactly; switching timing + fees confirmed (Oct 2008
+sanity check: correctly in T-bills during the −16.7% month); MV settings
+confirmed; a fresh `R/11_evaluate.R` run reproduced all six tables
+bit-identically; economic inputs hand-checked. Remaining action for Sasi:
+Canvas upload Mon 9 Nov per `SUBMISSION_CHECKLIST.md`.
+
 **Stage:** Phase 3 complete. You own the econometric evaluation, so this
 packet covers the tests, the economic strategies, and the numbers you will
 present and defend.

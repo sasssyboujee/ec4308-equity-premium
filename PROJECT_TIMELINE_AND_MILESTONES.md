@@ -12,7 +12,10 @@
 >   determinism verified. → packet `review/CHECKPOINT_R2_ENSHAO.md` (En Shao, due Fri 30 Oct).
 > - ✅ **Phase 3 (evaluation) done**: Tables 2–3 for all horizons (DM/CW, hit
 >   rates, switching + MV with 5/10/20 bps and BH/PM reference rows), Figures 1–3,
->   Table 5 replication. → packet `review/CHECKPOINT_R3_SASI.md` (Sasi, due Wed 4 Nov).
+>   Table 5 replication. → packet `review/CHECKPOINT_R3_SASI.md`.
+>   **✅ R3 SIGNED OFF by Sasi (Tue 28 Oct, ~01:50 SGT)** — timing A kept;
+>   all six checks re-verified on his behalf (DM/CW match hand computations,
+>   fresh evaluator run bit-identical, economic inputs hand-checked).
 > - ✅ **Phase 4 (report/deck) done**: 12-page report PDF (`report/main.pdf`),
 >   10-slide deck with per-speaker notes (`deck/EC4308_Presentation.pptx`),
 >   submission zip staged (`submission/EC4308_Project_Submission.zip`).
@@ -25,7 +28,8 @@
 >   the embedded creation timestamp differs). Two real bugs were caught and
 >   fixed by this run (args/source ordering in `09_run_models.R`, missing
 >   `main.tex` in the zip).
-> - ⏳ **Remaining (human)**: the four reviews above; fix findings; Sasi uploads
+> - ⏳ **Remaining (human)**: R1 (Leon, Wed 28 Oct), R2 (En Shao, Fri 30 Oct),
+>   R4 (Vienna, Sat 7 Nov); fix any findings; Sasi uploads
 >   to Canvas Mon 9 Nov; Week-13 rehearsal; Reading-Week peer review.
 >
 > Headline results: no model beats the prevailing mean at any horizon on the
