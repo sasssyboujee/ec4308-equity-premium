@@ -96,7 +96,7 @@ signals earn their keep almost entirely in crisis months — 2000 to 2002 and
 2008 to 2009 — and the post-2011 sample simply lacks comparable episodes.
 Our subperiod split shows this directly: LASSO's out-of-sample R-squared is
 minus 10.5 percent in 1971 to 1999, improves to minus 1.2 percent in the
-crisis decade 2000 to 2011, then drops to minus 13.5 percent after 2012.
+crisis decade 2000 to 2011, then drops to minus 13.4 percent after 2012.
 Second, a market dominated by passive flows arbitrages published signals
 faster. Third, joint multivariate fits dilute the bivariate information: with
 only macro predictors, LASSO is much closer to the benchmark at minus 0.9
