@@ -16,9 +16,11 @@
 #   * 2012-01 .. 2025-12: monthly AVERAGE daily volume of ^GSPC computed
 #     from Yahoo Finance daily bars (via yfinance) and shipped as
 #     data/raw/spx_volume_2012_2025.csv. Validation: on the 1985-2011
-#     overlap the two series have correlation 0.9999 and a near-constant
-#     ratio (median 1.05); the VOL signals are invariant to any constant
-#     volume rescaling, so the splice is immaterial for the signals.
+#     overlap the UNTRUNCATED Yahoo series and the paper series have
+#     correlation 0.9999 with a near-constant ratio (independently
+#     re-verified; the shipped 2012+ CSV starts where the paper series ends,
+#     so it contains no overlap months itself). The VOL signals are invariant
+#     to any constant volume rescaling, so the splice is immaterial.
 #
 # Usage (repo root):  Rscript data/00_fetch_technical.R
 # =============================================================================

@@ -46,7 +46,7 @@ from two inputs:
 | :--- | :--- | :--- | :--- |
 | `data/raw/GoyalWelchZafirov_PredictorData.xlsx` | Amit Goyal's site | 1871–2025 | S&P index level (`price` column) for MA/MOM |
 | `data/raw/spx_volume_1950_2011.csv` | Neely et al. (2014) replication workbook (shipped as `data/raw/neely2014_Returns_econ_tech.xls`, from [github.com/szmnkrisz/EquityReturnPrediction](https://github.com/szmnkrisz/EquityReturnPrediction)) | 1950-01–2011-12 | monthly average daily volume, the paper's own series |
-| `data/raw/spx_volume_2012_2025.csv` | Yahoo Finance `^GSPC` daily bars, monthly average (yfinance) | 2012-01–2025-12 | extension; cor 0.9999 with the paper series on the 1985–2011 overlap |
+| `data/raw/spx_volume_2012_2025.csv` | Yahoo Finance `^GSPC` daily bars, monthly average (yfinance) | 2012-01–2025-12 | extension; the untruncated Yahoo series used to build it has cor 0.9999 with the paper series on the 1985–2011 overlap (independently re-verified; the shipped 2012+ CSV itself starts where the paper series ends, so it contains no overlap months) |
 | `data/raw/neely_signals_published_1950_2011.csv` | Neely et al. (2014) published signals | 1950-12–2011-12 | validation reference only — NOT used to build the panel |
 
 The VOL signals compare moving averages of on-balance volume, so they are

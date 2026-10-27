@@ -75,9 +75,11 @@ Rscript data/03_validate_signals.R  # re-run published-signal check
    "lag 1" is the value from one month ago. (Neely et al. use only one lag,
    effectively x[t−1] in our indexing.)
 4. **Volume splice** = paper's own volume (1950–2011) + Yahoo avg-daily volume
-   (2012–2025); cor 0.9999 on overlap, signals invariant to constant volume
-   rescaling. Alternative was published signals + computed extension; I chose
-   the fully-computed chain for a single consistent methodology.
+   (2012–2025); cor 0.9999 verified on the untruncated Yahoo series' 1985–2011
+   overlap (the shipped 2012+ CSV starts where the paper series ends);
+   signals invariant to constant volume rescaling. Alternative was published
+   signals + computed extension; I chose the fully-computed chain for a
+   single consistent methodology.
 5. **Two micro-deviations vs published** (MOM_12 1968-03, VOL_2_9 1980-04)
    accepted and documented rather than patched.
 
