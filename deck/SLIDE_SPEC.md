@@ -1,10 +1,12 @@
 # EC4308 Group 6 — SLIDE BUILD BRIEF (binding spec for the deck-building agent)
 
-> **Status:** current as of repo commit `9d863ec` (branch `main`). Every number
+> **Status:** current as of repo commit `6e7dd7f` (branch `main`). Every number
 > below was read from a CSV cell / `R/00_config.R` and is re-checkable with §9.
-> Earlier versions of this file, `legacy/deck/make_deck.py`, `legacy/deck/EC4308_Presentation.pptx`,
-> `report/main.tex|pdf`, README result text and `review/*.md` contain **stale,
-> wrong numbers** — do not copy anything numeric from them.
+> Earlier versions of this file and everything under `legacy/` (old
+> `make_deck.py`, `EC4308_Presentation.pptx`, review packets) contain **stale,
+> wrong numbers** — do not copy anything numeric from them. The rewritten
+> `report/main.tex|pdf` (commit `52ac2ab`) agrees with these CSVs and may be used
+> for wording, but this spec and the CSVs remain the numeric source of truth.
 
 ---
 

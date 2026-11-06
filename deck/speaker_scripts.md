@@ -7,7 +7,8 @@ time x 130. Speak to the room, glance at the slide, don't read it.
 **Numbers rule:** every number below is traced to a cell in
 `output/tables/*.csv`, `data/processed/expanded_variant_summary.csv` or
 `R/00_config.R` (one exception, flagged in Q&A: the lag-1 quick check).
-Do not add numbers from the report, README or old deck — they are stale.
+The rewritten report (commit `52ac2ab`) uses the same numbers; anything under
+`legacy/` (old deck, review packets) is stale — do not take numbers from it.
 
 ## Run order
 
