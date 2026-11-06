@@ -7,44 +7,55 @@
 #     dY[t] = a + b*t + (rho-1)*Y[t-1] + sum_{k=1..p} g_k * dY[t-k] + e[t]
 #
 # H0: rho = 1 (unit root). The statistic is the t-statistic on (rho-1).
-# The 1/5/10% critical values are the MacKinnon (1996) asymptotic response
-# surface values for the intercept+trend specification (-4.04/-3.45/-3.15);
-# significance is reported as a bin against those values.
+# Critical values are MacKinnon (2010), asymptotic, for one series with
+# intercept and optional trend; significance is a bin, not an exact p-value.
+# Reference coefficients: statsmodels/tsa/adfvalues.py, tau_*_2010 (N=1).
 # =============================================================================
 
 adf_test <- function(x, lags_max = 12L, trend = TRUE) {
   x <- as.numeric(x)
   T <- length(x)
-  if (anyNA(x)) stop("adf_test: NAs in series")
+  stopifnot(all(is.finite(x)), length(lags_max) == 1L,
+            is.finite(lags_max), lags_max >= 0L,
+            lags_max == as.integer(lags_max),
+            length(trend) == 1L, is.logical(trend), !is.na(trend))
+  if (T - 1L - lags_max < 30L || stats::var(x) == 0) {
+    stop("adf_test needs a varying series and at least 30 common observations.",
+         call. = FALSE)
+  }
   dy <- diff(x)
 
   best <- list(bic = Inf, p = 0L, stat = NA_real_)
   for (p in 0:lags_max) {
-    n_eff <- T - 1 - p                  # usable observations after p lags
-    if (n_eff < 30) next
-    idx <- (p + 1):(T - 1)
-    X <- data.frame(intercept = 1, trend = seq_len(n_eff), y1 = x[idx])
+    idx <- seq.int(lags_max + 1L, T - 1L)
+    n_eff <- length(idx)
+    X <- data.frame(intercept = 1, y1 = x[idx])
+    if (trend) X$trend <- idx
     if (p > 0) {
       for (k in seq_len(p)) X[[paste0("dy", k)]] <- dy[idx - k]
     }
     yv <- dy[idx]
     fit <- stats::lm.fit(y = yv, x = as.matrix(X))
+    if (fit$rank != ncol(X)) stop("adf_test regression is rank deficient.")
     res <- yv - as.matrix(X) %*% fit$coefficients
     sig2 <- sum(res^2) / n_eff
     bic <- log(sig2) + ncol(X) * log(n_eff) / n_eff
     if (bic < best$bic) {
-      se <- sqrt(diag(sig2 * chol2inv(chol(crossprod(as.matrix(X))))))
-      stat <- fit$coefficients[3L] / se[3L]     # 3rd coefficient = y1 (rho-1)
+      se <- sqrt(diag(sum(res^2) / (n_eff - ncol(X)) *
+                        chol2inv(chol(crossprod(as.matrix(X))))))
+      stat <- fit$coefficients["y1"] / se[which(names(X) == "y1")]
       best <- list(bic = bic, p = p, stat = as.numeric(stat))
     }
   }
 
-  sig <- if (is.na(best$stat)) NA_character_ else
-    if (best$stat < -4.04) "1%" else
-    if (best$stat < -3.45) "5%" else
-    if (best$stat < -3.15) "10%" else ">10%"
+  critical <- if (trend) c(-3.95877, -3.41049, -3.12705) else
+    c(-3.43035, -2.86154, -2.56677)
+  sig <- if (best$stat < critical[1L]) "1%" else
+    if (best$stat < critical[2L]) "5%" else
+    if (best$stat < critical[3L]) "10%" else ">10%"
 
   list(statistic = best$stat, lag_order = best$p, bic = best$bic,
-       critical_10pct = -3.15, critical_5pct = -3.45, critical_1pct = -4.04,
-       significance = sig, nobs = T)
+       critical_10pct = critical[3L], critical_5pct = critical[2L],
+       critical_1pct = critical[1L], significance = sig, nobs = n_eff,
+       trend = trend)
 }

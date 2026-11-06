@@ -4,7 +4,7 @@
 # Builds data/processed/panel.csv and data/processed/codebook.csv following
 # the alignment convention in data/README.md:
 #
-#   * Row t of y      = log equity premium EARNED in month t, in percent:
+#   * Row t of y      = simple excess return EARNED in month t, in percent:
 #                       y[t] = 100 * (ret[t] - Rfree[t]).
 #   * Row t of X       = predictors OBSERVABLE at the END of month t.
 #   * Macro lag k column:  x_lagk[t] = x[t-k]     (k = 1..MAX_LAG)
@@ -15,7 +15,7 @@
 #
 # Usage (repo root):  Rscript data/01_build_panel.R
 #                     Rscript data/01_build_panel.R expanded [out_file]
-#        (second form builds the panel with the 10 expanded GWZ-2024
+#        (second form builds the panel with the 8 eligible expanded GWZ
 #         predictors enabled, optionally to a custom output path)
 # =============================================================================
 
@@ -29,7 +29,13 @@ if (length(args) >= 1L && args[1] == "expanded") {
 }
 panel_out <- if (length(args) >= 2L) args[2] else
   file.path(CONFIG$DATA_PROCESSED, "panel.csv")
-codebook_out <- sub("panel", "codebook", panel_out)
+panel_name <- basename(panel_out)
+codebook_name <- if (startsWith(panel_name, "panel")) {
+  sub("^panel", "codebook", panel_name)
+} else {
+  paste0("codebook_", panel_name)
+}
+codebook_out <- file.path(dirname(panel_out), codebook_name)
 
 cat("== Build aligned panel ==\n")
 
@@ -43,7 +49,10 @@ gw <- as.data.frame(read_excel(
 gw$date <- as.Date(sprintf("%06d01", gw$yyyymm), "%Y%m%d")
 gw <- gw[order(gw$date), ]
 
-y <- 100 * (gw$ret - gw$Rfree)          # log equity premium, percent
+y <- 100 * (gw$ret - gw$Rfree)          # simple excess return, percent
+stopifnot(!anyDuplicated(gw$date), !anyNA(gw$date),
+          all(diff(as.integer(format(gw$date, "%Y"))) * 12L +
+                diff(as.integer(format(gw$date, "%m"))) == 1L))
 
 macro_names <- c(CONFIG$MACRO_CLASSIC,
                  if (CONFIG$USE_EXPANDED) CONFIG$MACRO_EXPANDED else NULL)
@@ -57,6 +66,9 @@ vol <- rbind(v1[, c("date", "volume_avg_daily")],
              v2[, c("date", "volume_avg_daily")])
 vol$date <- as.Date(vol$date)
 vol <- vol[order(vol$date), ]
+stopifnot(!anyNA(vol$date), !anyDuplicated(vol$date),
+          all(is.finite(vol$volume_avg_daily)), all(vol$volume_avg_daily > 0),
+          identical(vol$date, seq(min(vol$date), max(vol$date), by = "month")))
 
 p <- merge(gw[, c("date", "price")], vol, by = "date", all.x = TRUE)
 p <- p[order(p$date), ]
@@ -101,6 +113,10 @@ panel <- panel[panel$date >= start_d & panel$date <= end_d, ]
 
 # (a) no NAs after the start date
 stopifnot(all(complete.cases(panel)))
+stopifnot(all(is.finite(as.matrix(panel[, -1L]))),
+          identical(panel$date, seq(start_d, end_d, by = "month")),
+          ncol(panel) == 2L + length(macro_names) * CONFIG$MAX_LAG +
+            length(CONFIG$TECHNICAL_NAMES))
 # (b) spot-check the lag construction on random rows (x_lagk[t] == x[t-k])
 set.seed(CONFIG$SEED)
 for (v in macro_names) {
@@ -130,7 +146,7 @@ tech_cb <- data.frame(column = CONFIG$TECHNICAL_NAMES, group = "technical",
 cb <- rbind(
   data.frame(column = CONFIG$TARGET, group = "target",
              variable = "eq_prem", lag = 0,
-             definition = "100*(ret - Rfree): log S&P 500 total return minus log risk-free, in percent",
+             definition = "100*(ret - Rfree): simple monthly total equity return minus realized risk-free return, in percentage points",
              alignment = "earned in month t"),
   codebook, tech_cb
 )

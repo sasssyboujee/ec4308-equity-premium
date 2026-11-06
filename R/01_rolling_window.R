@@ -9,8 +9,9 @@
 #   * y[t]    = return / equity premium EARNED in month t.
 #   * X[t, ]  = predictors OBSERVABLE at the END of month t (Leon's lagged
 #               panel must already be aligned this way).
-#   * The forecast for month t+h is made at the end of month t using only
-#     y[1..t] and X[1..t]; nothing from months t+1 .. t+h is ever used.
+#   * The forecast for month t+h is made at the end of month t using X[t].
+#     Training pairs are X[s] -> y[s+h], and only targets observed by t are
+#     used; nothing from months t+1 .. t+h is ever used.
 #
 # Output: data.frame(target_index, forecast) where target_index is the index
 # of the month being forecast. Identical alignment to prevailing_mean() so
@@ -21,24 +22,33 @@ rolling_oos <- function(y, X, h = 1L, w = 240L, model_fn, ...) {
   T <- length(y)
   stopifnot(
     is.matrix(X) || is.data.frame(X),
-    nrow(X) == T,
-    w >= 10L, w + h <= T,
+    is.numeric(y), all(is.finite(y)), is.numeric(as.matrix(X)),
+    all(is.finite(as.matrix(X))), nrow(X) == T, ncol(X) >= 1L,
+    length(w) == 1L, is.finite(w), w == as.integer(w),
+    length(h) == 1L, is.finite(h), h == as.integer(h),
+    w >= 10L, h >= 1L, w + 2L * h <= T,
     is.function(model_fn)
   )
 
-  origins    <- seq.int(w, T - h)   # index of the last month in each training window
+  origins    <- seq.int(w + h, T - h)
   target_idx <- origins + h         # index of the month being forecast
   n_oos      <- length(origins)
   fc         <- rep(NA_real_, n_oos)
 
   for (i in seq_len(n_oos)) {
     o     <- origins[i]
-    tr    <- seq.int(o - w + 1L, o)              # training rows
+    tr_x  <- seq.int(o - h - w + 1L, o - h)
+    tr_y  <- tr_x + h
     X_new <- X[o, , drop = FALSE]                # predictors known at end of month o
-    fc[i] <- as.numeric(model_fn(y = y[tr], X = X[tr, , drop = FALSE],
+    pred <- model_fn(y = y[tr_y], X = X[tr_x, , drop = FALSE],
                                  X_new = X_new,
-                                 origin = o, target_index = target_idx[i],
-                                 ...))
+                                 origin = o, target_index = target_idx[i], h = h,
+                                 ...)
+    if (!is.numeric(pred) || length(pred) != 1L || !is.finite(pred)) {
+      stop("Invalid model forecast at origin ", o, ", horizon ", h,
+           ": expected one finite number.", call. = FALSE)
+    }
+    fc[i] <- pred
   }
 
   data.frame(target_index = target_idx, forecast = fc)

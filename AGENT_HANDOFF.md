@@ -1,10 +1,14 @@
 # AGENT HANDOFF — EC4308 Equity-Premium Project
 
+> **Superseded technical snapshot.** The current code audit corrected cash
+> units, simple-return labels, tuning, expanded predictors and constrained
+> combinations. Results/sign-offs below are historical, not current validation.
+> Use [README](README.md) for the current contract and run instructions.
+> Report and presentation synchronization is deferred.
+
 > **For AI agents working on behalf of the EC4308 group members.**
-> Read this document first. It is the single source of truth for the state of
-> the project, the conventions you must not break, and exactly what your
-> owner needs from you.
-> **State captured:** Mon 27 Oct 2026, 23:47 SGT · **Deadline:** Mon 9 Nov 2026.
+> Preserve this document as historical context, not a current source of results.
+> **State captured:** Sun 1 Nov 2026 · **Deadline:** Mon 9 Nov 2026.
 
 ---
 
@@ -21,11 +25,14 @@ is baked into the design.
 
 ## 2. Current state — READ THIS FIRST
 
-**All technical work is COMPLETE, VERIFIED, and PUSHED to GitHub
-(`origin/main`, repo `sasssyboujee/ec4308-equity-premium`).**
-Nothing requires new analysis unless a reviewer requests it. The only
-remaining tasks are (a) four human reviews with due dates below, (b) folding
-in any findings they produce, and (c) the Canvas upload.
+The forecast-alignment correction and main full-spec analysis have been
+regenerated. The report PDF and presentation have been rebuilt and checked.
+The corrected expanded-predictor robustness run is complete; its 27 model /
+horizon OOS $R^2$ values are all negative (−12.265% to −0.228%), and the
+summary was regenerated. The working tree contains uncommitted changes and
+has not been pushed. A clean-directory rerun from the submission ZIP has not
+been performed. Remaining work: obtain the human reviews below and upload the
+report and code/data archive to Canvas.
 
 If you are an agent for one of the four members: your job is **review and
 sign-off**, not re-doing the project. Your owner's review packet (Section 9)
@@ -40,7 +47,7 @@ data/
   processed/            panel.csv, codebook.csv, forecasts_h{1,3,12}.csv,
                         *_tech/_macro/_neely_biv/_expanded variants
   0X_*.R                fetch/build/table1/validation scripts
-report/main.tex         LaTeX source  →  report/main.pdf (12 pages)
+report/main.tex         LaTeX source  →  report/main.pdf (14 pages)
 deck/                   make_deck.py → EC4308_Presentation.pptx;
                         speaker_scripts.md (per-person lines + timing)
 output/tables/          table1..table5, tableA1, signal_validation (CSV + .tex)
@@ -58,42 +65,51 @@ PROJECT_TIMELINE_AND_MILESTONES.md  full roadmap + AI-handoff status log
 Rscript data/01_build_panel.R            # panel 1951-02..2025-12, 899 mo, 98 cols
 Rscript data/02_table1.R                 # Table 1 (summary + ADF)
 Rscript data/03_validate_signals.R       # our signals vs published: 99.98%
-Rscript R/09_run_models.R 6              # ALL models x h=1,3,12 (~35 min)
-                                         # variants: ... 2 tech 1 | ... 2 macro 1
+Rscript R/09_run_models.R 1              # all models x h=1,3,12
+                                         # Windows is serial; corrected run took 146 min
+Rscript R/09_run_models.R 1 tech 1       # h=1 technical-only robustness
+Rscript R/09_run_models.R 1 macro 1      # h=1 macro-only robustness
 Rscript R/15_neely_bivariate.R           # bivariate robustness (fixed window)
 Rscript R/16_neely_replication.R         # expanding-window replication/extension
 Rscript R/11_evaluate.R                  # Tables 2-3 (accuracy, DM/CW, economic)
 Rscript R/13_figures.R                   # Figures 1-4
 Rscript R/14_make_latex_tables.R         # .tex table fragments
-cd report && latexmk -pdf main.tex       # report/main.pdf
+cd report && tectonic -r 2 main.tex      # report/main.pdf (validated build)
 python3 deck/make_deck.py                # deck/EC4308_Presentation.pptx
 Rscript scripts/make_submission_zip.R    # submission zip (code+data+LaTeX source)
 ```
 
 Everything is deterministic (fixed seeds, `num.threads = 1` for ranger).
-A from-scratch rerun of this chain from the zip in a clean directory was
-performed: **all CSVs identical, figures byte-identical, PDF text-identical**
-(only the embedded creation timestamp differs).
+The corrected forecast run and downstream outputs were regenerated in the
+working tree. A complete clean-directory rerun from the submission ZIP has
+not been performed; do not claim clean-room reproducibility.
 
 ## 5. Key results (numbers to know)
 
-- **Headline:** no model beats the prevailing mean at any horizon on the
-  extended sample. OOS R²: rlasso −8.8% (h=1), −8.2% (h=3), −11.5% (h=12);
-  worst is PLS/RF ≈ −40..−50%. PM RMSE ≈ 4.40.
-- **Replication (credibility check):** expanding-window bivariate design of
-  Neely et al. (2014) reproduces their positive findings on 1966–2011 —
-  VOL(2,9) +0.36%, VOL(2,12) +0.66%, VOL(3,12) +0.76% (CW p ≤ 0.03) — and
-  everything turns negative/insignificant on 2012–2025.
-- **Subperiods (h=1, rlasso):** −10.5% (1971–99), **−1.2% (2000–11)**,
-  −13.5% (2012–25) → predictability is crisis-episodic.
-- **Economic value:** switching strategy halves max drawdown (−50.2% →
-  −23.4%) at Sharpe 0.767 vs BH 0.777, but trails in terminal wealth
-  ($67.7 vs $346.5). Mean-variance investor (γ=3, 10 bps): ΔU = +1.31%
-  p.a. (post-LASSO), +1.22% (rlasso), +1.06% (GR), +0.73% (equal).
-- **Variants:** technical-only and macro-only (Appendix A1) are also
-  negative; macro-only rlasso is closest (−0.9%). Expanded GWZ-2024
-  predictors (158 cols, all horizons pre-computed) never change the
-  headline — see `data/processed/expanded_variant_summary.csv`.
+- **Headline:** all model OOS R² estimates are negative, ranging from −15.49%
+  to −0.38% across horizons. The closest models are LASSO at h=1 (−1.06%)
+  and post-LASSO at h=3 (−0.38%) and h=12 (−0.52%). One-sided DM tests do
+  not show significant improvement (minimum p=0.677); CW p-values are all
+  above 0.10. PM RMSE is 4.403, 4.409, and 4.443 for h=1,3,12.
+- **Replication:** the corrected expanding-window estimates on 1966–2011
+  are VOL(2,9) +0.19% (CW p=0.193), VOL(2,12) +0.11% (p=0.247), and
+  VOL(3,12) +0.53% (p=0.077); none reaches 5% significance. The selected
+  2012–2025 extension estimates are negative and insignificant.
+- **Subperiods (h=1, rlasso):** −0.63% (1971–99), −1.20% (2000–11), and
+  −1.94% (2012–25). These are descriptive; they do not establish a causal
+  explanation for differences across periods.
+- **Economic results (h=1):** LASSO switching ends at $232.7 per dollar
+  versus $341.9 for buy-and-hold; maximum drawdown is −44.4% versus −50.2%.
+  Mean-variance ΔU is negative for every forecast model at 10 bps (LASSO
+  −0.39%, post-LASSO −2.07%, GR −0.99%, equal-weight −0.76% p.a.).
+- **Predictor-set variants (h=1):** all nine models have negative OOS R²
+  for full, technical-only, and macro-only sets. Technical-only is closest
+  to the benchmark for several models; the comparisons are descriptive.
+- **Expanded GWZ-2024 variant:** all 27 OOS $R^2$ values from the corrected
+  158-predictor rerun are negative (−12.265% to −0.228%). Counts are 658,
+  654, and 636 forecasts for h=1,3,12. The regenerated summary is
+  `data/processed/expanded_variant_summary.csv`; this robustness result is
+  descriptive and is not included in the report's headline claims.
 
 ## 6. Design conventions — DO NOT BREAK
 
@@ -113,31 +129,31 @@ performed: **all CSVs identical, figures byte-identical, PDF text-identical**
    `R/17_switching_overlap.R` timing B — same conclusions).
 9. **Seeds fixed** (CONFIG$SEED = 4308); reproducibility verified.
 
-## 7. Environment facts (this Mac)
+## 7. Environment facts
 
-- R 4.6.1 at `/opt/homebrew/bin/R`; all packages installed (hdm, glmnet,
-  pls, ranger, forecast, sandwich, readxl, dplyr, tidyr, ggplot2, limSolve,
-  openxlsx, lmtest, zoo, xts, tseries, readr, vroom, ...).
-- **C++ fix (important):** `~/.R/Makevars` adds
-  `CPPFLAGS += -I/Library/Developer/CommandLineTools/SDKs/MacOSX27.0.sdk/usr/include/c++/v1`
-  (Homebrew R 4.6.1 cannot find libc++ headers otherwise).
-- LaTeX: TeX Live 2026basic + `threeparttable`/`multirow` installed into
-  `~/Library/texmf/` (tlmgr is root-only).
-- Python (miniconda): python-pptx, yfinance, pypdf, openpyxl, Pillow.
-- Git credentials in macOS keychain; push directly to `main` (team decision).
+- The final report was compiled successfully with Tectonic; the PDF has 14
+  pages. A non-fatal Fontconfig configuration message may appear.
+- The presentation was rebuilt with Python and python-pptx; it has 10 slides
+  with speaker notes on every slide.
+- The submission archive script was run successfully and validated all 38
+  expected files by extracting them to a temporary directory.
+- These checks verify the current generated artifacts, not a clean-room
+  reproduction of the complete pipeline.
 
 ## 8. How to verify "everything is correct" (fast)
 
 ```bash
 Rscript R/99_demo_synthetic.R        # Sasi's original scaffold smoke test
 Rscript R/98_smoke_models.R          # every model_fn on synthetic data
-Rscript R/11_evaluate.R 1            # must reproduce output/tables/table2_h1.csv
-git status --short                   # must be empty
+Rscript R/11_evaluate.R              # regenerate all accuracy/economic tables
+git diff --check                     # verify whitespace
+git status --short                   # review intended project changes
 ```
 Cross-validations already done (results recorded in the review packets):
 DM vs `forecast::dm.test`, ADF vs `tseries::adf.test`, Table 1 spot checks,
-Neely signal match table, GR weight constraints, two independent full h=1
-runs bit-identical, from-scratch zip rerun identical.
+Neely signal match table, GR weight constraints, synthetic target-alignment
+tests, and corrected all-horizon forecast counts. A complete clean-directory
+rerun from the final ZIP remains unverified.
 
 ## 9. What each owner's agent must do
 
@@ -161,7 +177,7 @@ Answer decision #1 (h>1 timing A vs B — both pre-computed in
 uploads `report/main.pdf` and `submission/EC4308_Project_Submission.zip`.
 
 ### Agent for Vienna — R4, due Sat 7 Nov
-Read `review/CHECKPOINT_R4_VIENNA.md`. Review `report/main.pdf` (12 pages,
+Read `review/CHECKPOINT_R4_VIENNA.md`. Review `report/main.pdf` (14 pages,
 format compliance) and `deck/EC4308_Presentation.pptx` + `speaker_scripts.md`.
 Supply the contribution-statement wording and any text edits. Coordinate the
 Week-13 rehearsal.
@@ -195,5 +211,6 @@ pre-upload check. Then: Week-13 talk (all four speak, scripts in
 - `R/07_unitroot.R` reports significance bins vs MacKinnon asymptotic
   critical values (−4.04/−3.45/−3.15), BIC lag selection — matches
   `tseries::adf.test` within 0.2% at equal lags.
-- Don't rerun the full 35-minute model pipeline unless a reviewer requests a
-  change; verification uses the targeted commands in Section 8.
+- The corrected full-spec run took about 146 minutes on Windows. Do not start
+  a duplicate full run; use the targeted checks in Section 8 unless a
+  substantive analysis change requires regeneration.

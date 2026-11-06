@@ -1,11 +1,11 @@
 # =============================================================================
-# 11_evaluate.R -- OOS evaluation: Table 2 (accuracy + DM/CW), Table 3 (economic)
+# 11_evaluate.R -- OOS evaluation: Table 2 (accuracy + DM), Table 3 (economic)
 # =============================================================================
 # Reads the per-horizon forecast CSVs produced by R/09_run_models.R and
 # writes:
 #   output/tables/table2_h{1,3,12}.csv  -- RMSE/MAE, R2_OOS (Campbell-
 #       Thompson 2008), Diebold-Mariano (RMSE & MAE basis, one-sided),
-#       Clark-West (appendix check) of every model vs the Prevailing Mean.
+#       vs the Prevailing Mean.
 #   output/tables/table3_h{1,3,12}.csv  -- Binary Switching Strategy
 #       (terminal wealth, Sharpe, max drawdown, switches, equity exposure)
 #       and Mean-Variance utility (CER, Delta U, mean weight, Sharpe) at
@@ -24,10 +24,12 @@ source("R/00_config.R")
 source("R/03_diebold_mariano.R")
 source("R/04_switching_strategy.R")
 source("R/05_mv_utility.R")
-source("R/12_clark_west.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-hs <- if (length(args) >= 1L) as.integer(args) else CONFIG$HORIZONS
+hs <- if (length(args) >= 1L) as.numeric(args) else CONFIG$HORIZONS
+stopifnot(length(hs) >= 1L, !anyNA(hs), all(hs %in% CONFIG$HORIZONS),
+          !anyDuplicated(hs))
+hs <- as.integer(hs)
 
 panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
 panel$date <- as.Date(panel$date)
@@ -39,9 +41,9 @@ gw <- as.data.frame(read_excel(
 ))
 gw$date <- as.Date(sprintf("%06d01", gw$yyyymm), "%Y%m%d")
 gw <- gw[order(gw$date), ]
-m <- match(panel$date, gw$date)
-equity_ret_pct <- 100 * gw$ret[m]            # total return incl. dividends, % per month
-tbill_ret_pct  <- gw$tbl[m] / 12             # t-bill rate, % per month
+asset_returns <- monthly_asset_returns(gw, panel$date)
+equity_ret_pct <- asset_returns$equity
+tbill_ret_pct  <- asset_returns$cash
 sigma2_hat_pct2 <- rolling_variance(equity_ret_pct, window = CONFIG$VAR_WINDOW)
 
 MODELS <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf",
@@ -51,6 +53,9 @@ for (h in hs) {
   fc <- read.csv(file.path(CONFIG$DATA_PROCESSED,
                            sprintf("forecasts_h%d.csv", h)))
   idx <- fc$target_index
+  stopifnot(all(idx == as.integer(idx)), all(idx > h & idx <= nrow(panel)),
+            all(diff(idx) == 1L), identical(as.Date(fc$date), panel$date[idx]),
+            all(is.finite(as.matrix(fc[, c("pm", MODELS)]))))
   actual <- y[idx]
 
   # ---- Table 2: statistical accuracy ---------------------------------------
@@ -62,7 +67,6 @@ for (h in hs) {
                    alternative = "less")
     dm1 <- dm_test(actual, f1 = f, f2 = fc$pm, power = 1L, h = h,
                    alternative = "less")
-    cw  <- cw_test(actual, f_benchmark = fc$pm, f_model = f, h = h)
     data.frame(
       model = nm, horizon = h,
       RMSE = sqrt(mean(e^2)), RMSE_pm = sqrt(mean(epm^2)),
@@ -71,8 +75,7 @@ for (h in hs) {
       HR = round(mean(sign(f) == sign(actual)), 3),        # direction of change
       HR_pm = round(mean(sign(fc$pm) == sign(actual)), 3),
       DM_RMSE_stat = round(dm2$statistic, 3), DM_RMSE_p = round(dm2$p.value, 4),
-      DM_MAE_stat = round(dm1$statistic, 3), DM_MAE_p = round(dm1$p.value, 4),
-      CW_stat = round(cw$statistic, 3), CW_p = round(cw$p.value, 4)
+      DM_MAE_stat = round(dm1$statistic, 3), DM_MAE_p = round(dm1$p.value, 4)
     )
   })
   tab2 <- do.call(rbind, rows)
@@ -84,7 +87,8 @@ for (h in hs) {
 
   # ---- Table 3: economic value ---------------------------------------------
   eq_r <- equity_ret_pct[idx]; tb_r <- tbill_ret_pct[idx]
-  s2 <- sigma2_hat_pct2[idx]
+  origin_idx <- idx - h
+  s2 <- sigma2_hat_pct2[origin_idx + 1L]
   econ <- lapply(MODELS, function(nm) {
     f <- fc[[nm]]; fpm <- fc$pm
     sw10 <- switching_backtest(eq_r, tb_r, f, fee_bps = 10)
@@ -131,7 +135,7 @@ for (h in hs) {
       sw_wealth_20bps = NA, sw_wealth_bh = bh$terminal_wealth_bh,
       sw_sharpe_10bps = round(bh$sharpe_annual, 3),
       sw_maxdd_10bps = round(bh$max_drawdown, 4),
-      sw_switches = 0, sw_eq_exposure = 1,
+      sw_switches = bh$n_switches, sw_eq_exposure = 1,
       mv_deltaU_5bps_pct = NA, mv_deltaU_10bps_pct = NA,
       mv_deltaU_20bps_pct = NA, mv_cer_model_10bps_pct = NA,
       mv_sharpe_10bps = NA, mv_mean_w = NA),

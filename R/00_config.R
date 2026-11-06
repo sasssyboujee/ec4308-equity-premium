@@ -14,6 +14,11 @@ CONFIG <- list(
   HORIZONS   = c(1L, 3L, 12L),
 
   # --- Transaction costs (basis points) for the Binary Switching Strategy ---
+  # Charged per switch (incl. initial equity entry). Assumes trading an S&P 500
+  # ETF and T-bills: major US brokers charge $0 online commission (e.g. Schwab
+  # pricing page, accessed 2026-11-07) and a one-cent spread on SPY (~$733) is
+  # ~0.14 bps, so 10 bps conservatively covers spread, slippage and impact.
+  # 20 bps is the stress case for costlier earlier decades.
   FEE_BPS    = 10,                # baseline: 10 bps
   FEE_SENSITIVITY = c(5, 20),     # robustness checks
 
@@ -35,8 +40,7 @@ CONFIG <- list(
   # --- Packages used across the project ----------------------------------------
   # (The evaluation module itself is base-R only; the model packages below
   #  are needed by En Shao's scripts. Install them all once per machine.)
-  PACKAGES = c("hdm", "glmnet", "pls", "ranger", "forecast",
-               "sandwich", "readxl", "dplyr", "tidyr", "ggplot2")
+  PACKAGES = c("hdm", "glmnet", "pls", "ranger", "limSolve", "readxl", "ggplot2")
 )
 
 # -----------------------------------------------------------------------------
@@ -65,12 +69,19 @@ CONFIG$MACRO_CLASSIC <- c("d/p", "d/y", "e/p", "d/e", "svar", "b/m",
                           "ntis", "tbl", "lty", "ltr", "tms", "dfy", "dfr",
                           "infl")
 
-# Optional "expanded" GWZ (2024 RFS) predictors that are complete from ~1927.
-# Enabling them does NOT shorten the sample (the technical indicators bind
-# at 1951-02), it only widens the predictor matrix. Default: OFF (the
+# Optional expanded GWZ (Goyal et al. 2024) predictors. Only these 8 have
+# complete monthly data over 1950-08..2025-12 (needed for 6 lags from 1951-02)
+# and no full-sample warning in the workbook ReadMe. Excluded, per that ReadMe
+# and the Monthly sheet:
+#   * full-sample constructions (look-ahead): fbm, ogap, sntm, tchi, shtint
+#   * no monthly data: eqis, cay, i/k, pce, govik, skew, crdstd, accrul,
+#     cfacc, gpce, gip, house
+#   * start too late / end early: csp, vp, impvar, vrp, ndrbl, ygap, rsvix, disag
+# Enabling them does not shorten the chosen sample; it only widens X.
+# Default: OFF (the
 # proposal and Neely et al. use the classic 14); see review/CHECKPOINT_R1.
-CONFIG$MACRO_EXPANDED <- c("skvw", "tail", "fbm", "rdsp", "avgcor",
-                           "dtoy", "dtoat", "wtexas", "lzrt", "ogap")
+CONFIG$MACRO_EXPANDED <- c("skvw", "tail", "rdsp", "avgcor",
+                           "dtoy", "dtoat", "wtexas", "lzrt")
 CONFIG$USE_EXPANDED <- FALSE
 
 # Lag depth for every macro predictor (Prof. Denis: "up to 6 lags").
@@ -84,16 +95,12 @@ CONFIG$TECHNICAL_NAMES <- c(
   paste0("VOL_", rep(1:3, each = 2), "_", rep(c(9, 12), 3))
 )
 
-# Target: log equity premium in PERCENT = 100 * (ret - Rfree), where ret is
-# the log S&P 500 total return (incl. dividends) and Rfree the log risk-free
-# rate. Validated against Neely et al. (2014) eq_prem: cor = 0.9991.
+# Target: simple monthly excess return in percentage points.
+# Both ret (including dividends) and Rfree are monthly simple decimal returns.
 CONFIG$TARGET <- "eq_prem"
 
-# Sample period of the aligned panel: the first month in which every column
-# (14 macro x 6 lags + 14 technical signals + y) is non-missing. The
-# binding constraint is the VOL signals (volume data start 1950-01 + 12-month
-# OBV burn-in), so the start lands at 1951-02, inside Prof. Denis's
-# ~1947-1952 target window.
+# Chosen common sample, not the earliest possible date: technical signals
+# are already complete in 1950-12. Preserve the agreed 1951-02 start.
 CONFIG$SAMPLE_START <- "1951-02-01"
 CONFIG$SAMPLE_END   <- "2025-12-01"
 

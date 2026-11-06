@@ -1,11 +1,11 @@
-"model","horizon","timing","months","sw_wealth_5bps","sw_wealth_10bps","sw_wealth_20bps","sw_sharpe_10bps","sw_maxdd_10bps","sw_switches","sw_eq_exposure"
-"rlasso",12,"B: freshest h-month-ahead",648,54.71,51.732,46.251,0.714,-0.2447,112,0.696
-"postlasso",12,"B: freshest h-month-ahead",648,65.196,61.84,55.632,0.759,-0.2337,106,0.673
-"ridge",12,"B: freshest h-month-ahead",648,38.552,35.375,29.78,0.656,-0.2976,172,0.684
-"enet",12,"B: freshest h-month-ahead",648,38.015,34.953,29.544,0.647,-0.2976,168,0.684
-"pcr",12,"B: freshest h-month-ahead",648,64.879,60.929,53.731,0.73,-0.3046,126,0.676
-"pls",12,"B: freshest h-month-ahead",648,25.81,23.386,19.196,0.606,-0.2593,198,0.65
-"rf",12,"B: freshest h-month-ahead",648,27.24,23.868,18.32,0.634,-0.2959,265,0.617
-"equal_comb",12,"B: freshest h-month-ahead",648,60.564,56.3,48.647,0.722,-0.2784,146,0.71
-"gr_comb",12,"B: freshest h-month-ahead",648,63.193,59.755,53.426,0.735,-0.2639,112,0.708
-"pm",12,"B: freshest h-month-ahead",648,301.973,301.973,301.973,0.77,-0.5022,0,1
+"model","horizon","timing","months","first_month","last_month","sw_wealth_5bps","sw_wealth_10bps","sw_wealth_20bps","sw_sharpe_10bps","sw_maxdd_10bps","sw_switches","sw_eq_exposure"
+"rlasso",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,196.166,193.734,188.957,0.454,-0.4779,25,0.961
+"postlasso",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,269.86,269.729,269.467,0.487,-0.5022,1,1
+"ridge",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,250.413,249.55,247.832,0.487,-0.5022,7,0.983
+"enet",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,217.937,214.571,207.987,0.474,-0.5022,31,0.956
+"pcr",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,313.782,310.824,304.989,0.517,-0.5022,19,0.951
+"pls",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,222.316,221.332,219.377,0.47,-0.5022,9,0.991
+"rf",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,112.133,104.792,91.509,0.446,-0.3324,136,0.626
+"equal_comb",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,198.119,194.318,186.929,0.465,-0.4834,39,0.953
+"gr_comb",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,245.021,239.623,229.174,0.505,-0.4459,45,0.914
+"pm",12,"B: freshest h-month-ahead",636,1972-02-01,2025-01-01,269.86,269.729,269.467,0.487,-0.5022,1,1

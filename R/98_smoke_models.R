@@ -39,6 +39,8 @@ for (nm in names(cands)) {
   oos <- rolling_oos(y, X, h = h, w = w, model_fn = cands[[nm]])
   dt <- round(as.numeric(difftime(Sys.time(), t0, units = "secs")), 1)
   na_n <- sum(is.na(oos$forecast))
+  stopifnot(nrow(oos) == n - w - 2L * h + 1L,
+            all(is.finite(oos$forecast)))
   results[[nm]] <- oos
   cat(sprintf("%-10s n_fc=%d NA=%d finite=%s  sd(fc)=%.2f  (%ss)\n",
               nm, nrow(oos), na_n, all(is.finite(oos$forecast)),
@@ -50,6 +52,8 @@ F <- data.frame(target_index = results[[1]]$target_index)
 for (nm in names(cands)) F[[nm]] <- results[[nm]]$forecast
 for (m in c("equal", "gr")) {
   cb <- combine_forecasts(F, y_full = y, method = m, gr_min_history = 30L, h = 1L)
+  stopifnot(all(is.finite(cb$forecast)),
+            identical(cb$target_index, F$target_index))
   cat(sprintf("combine-%-6s n_fc=%d NA=%d finite=%s sd(fc)=%.2f\n",
               m, nrow(cb), sum(is.na(cb$forecast)),
               all(is.finite(cb$forecast)), sd(cb$forecast, na.rm = TRUE)))
@@ -58,4 +62,56 @@ for (m in c("equal", "gr")) {
 # benchmark alignment check: same target_index as prevailing_mean
 pm <- prevailing_mean(y, h = h, w = w)
 stopifnot(identical(results[[1]]$target_index, pm$target_index))
+
+for (h in c(1L, 3L, 12L)) {
+  for (fold in forward_folds(w, h)) {
+    stopifnot(max(fold$train) + h <= min(fold$validation))
+  }
+  end <- w + 2L * h
+  origin <- w + h
+  changed_y <- y[seq_len(end)]
+  changed_X <- X[seq_len(end), , drop = FALSE]
+  changed_y[(origin + 1L):end] <- 1000
+  changed_X[(origin + 1L):end, ] <- 1000
+  for (nm in names(cands)) {
+    a <- rolling_oos(y[seq_len(end)], X[seq_len(end), , drop = FALSE],
+                     h = h, w = w, model_fn = cands[[nm]])
+    b <- rolling_oos(changed_y, changed_X, h = h, w = w, model_fn = cands[[nm]])
+    stopifnot(isTRUE(all.equal(a$forecast, b$forecast, tolerance = 1e-12)))
+  }
+}
+constant_X <- matrix(0, w, p)
+for (fn in cands) {
+  stopifnot(isTRUE(all.equal(fn(y[seq_len(w)], constant_X,
+                               constant_X[1L, , drop = FALSE]),
+                            mean(y[seq_len(w)]))))
+}
+stopifnot(is.finite(ridge_forecast_fn(y[seq_len(w)],
+                                     X[seq_len(w), 1L, drop = FALSE],
+                                     X[1L, 1L, drop = FALSE])))
+F_bad <- F
+F_bad[1L, 2L] <- NA_real_
+stopifnot(inherits(try(combine_forecasts(F_bad, y), silent = TRUE), "try-error"))
+rank_deficient <- cbind(X[1:60, 1], X[1:60, 1], X[1:60, 2])
+weights <- gr_weights(rank_deficient, y[1:60])
+stopifnot(all(is.finite(weights)), all(weights >= 0),
+          abs(sum(weights) - 1) < 1e-8)
+near_collinear <- cbind(rank_deficient, rank_deficient[, 1L] + 1e-8,
+                       rank_deficient[, 3L] - 1e-8)
+rounded <- matrix(as.numeric(format(near_collinear, digits = 15L,
+                                    scientific = TRUE)),
+                  nrow = nrow(near_collinear))
+for (history in list(near_collinear, rounded)) {
+  weights <- gr_weights(history, y[1:60])
+  stopifnot(all(is.finite(weights)), all(weights >= 0),
+            abs(sum(weights) - 1) < 1e-12)
+}
+for (h in c(1L, 3L, 12L)) {
+  known <- F$target_index[50L] - h
+  altered <- y
+  altered[(known + 1L):length(y)] <- 1e6
+  a <- combine_forecasts(F, y, "gr", gr_min_history = 30L, h = h)
+  b <- combine_forecasts(F, altered, "gr", gr_min_history = 30L, h = h)
+  stopifnot(isTRUE(all.equal(a$forecast[1:50], b$forecast[1:50])))
+}
 cat("\nAll model functions executed without error. Smoke test passed.\n")

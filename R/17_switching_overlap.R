@@ -12,10 +12,8 @@
 # group prefers overlapping, monthly-updated positions for h = 3, 12 (open
 # decision #1 in review/CHECKPOINT_R3_SASI.md).
 #
-# Because the last h-1 target months have no forecast formed at the
-# corresponding origin, timing B's position series ends h-1 months earlier
-# than timing A's; both are reported on the common wealth path so the two
-# are comparable.
+# Timing B's return sample starts and ends h-1 months earlier than timing A.
+# They are different evaluation samples; output records the actual dates.
 #
 # Usage (repo root):  Rscript R/17_switching_overlap.R
 # Output: output/tables/table3_alt_h{3,12}.csv (switching stats under timing B)
@@ -33,9 +31,9 @@ gw <- as.data.frame(read_excel(
   file.path(CONFIG$DATA_RAW, "GoyalWelchZafirov_PredictorData.xlsx"),
   sheet = "Monthly"))
 gw$date <- as.Date(sprintf("%06d01", gw$yyyymm), "%Y%m%d")
-m <- match(panel$date, gw$date)
-eq_r <- 100 * gw$ret[m]
-tb_r <- gw$tbl[m] / 12
+asset_returns <- monthly_asset_returns(gw, panel$date)
+eq_r <- asset_returns$equity
+tb_r <- asset_returns$cash
 
 MODELS <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf",
             "equal_comb", "gr_comb")
@@ -45,7 +43,6 @@ for (h in c(3L, 12L)) {
   # position for panel-month t uses the forecast of target t+h-1 (made at origin t-1)
   tgt_avail <- fc$target_index
   pos_months <- (tgt_avail[1] - h + 1):(tail(tgt_avail, 1) - h + 1)  # t such that t+h-1 in targets
-  fc_sel <- fc$forecast
   rows <- lapply(c(MODELS, "pm"), function(nm) {
     f_series <- fc[[nm]]                              # keyed by target
     f_by_target <- setNames(f_series, tgt_avail)
@@ -55,6 +52,8 @@ for (h in c(3L, 12L)) {
     sw20 <- switching_backtest(eq_r[pos_months], tb_r[pos_months], pos_fc, fee_bps = 20)
     data.frame(model = nm, horizon = h, timing = "B: freshest h-month-ahead",
                months = length(pos_months),
+               first_month = panel$date[pos_months[1L]],
+               last_month = panel$date[tail(pos_months, 1L)],
                sw_wealth_5bps = round(sw5$terminal_wealth, 3),
                sw_wealth_10bps = round(sw$terminal_wealth, 3),
                sw_wealth_20bps = round(sw20$terminal_wealth, 3),

@@ -1,5 +1,14 @@
 # Review Checkpoint R2 — ML Models & Ensembles (Reviewer: En Shao, by Fri 30 Oct)
 
+> **Superseded:** tuning is now chronological and constrained combinations use
+> a feasibility-checked solver. Use [README](../README.md); earlier results
+> and completed-review claims do not validate the corrected code.
+
+> **Historical snapshot (2026-10-30).** Its forecast results and related
+> conclusions predate the 2026-11-01 predictor/target alignment correction
+> and must not be cited. Use the current `review/AUDIT_REPORT.md` and
+> regenerated outputs.
+
 **Stage:** Phase 2 model layer is complete and committed. You own the ML
 methodology, so this packet is about the model functions, the training
 protocol, and two specification decisions.

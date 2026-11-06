@@ -2,7 +2,7 @@
 # data/02_table1.R -- Table 1: summary statistics & unit-root tests
 # =============================================================================
 # Produces output/tables/table1.csv with three blocks:
-#   Panel A: target (log equity premium, %) -- full sample and OOS split
+#   Panel A: target (simple excess return, %) -- full sample and h=1 OOS split
 #   Panel B: the raw macro predictors (before lagging)
 #   Panel C: the 14 technical signals (fraction of months in "buy" = mean)
 #
@@ -14,6 +14,7 @@
 suppressMessages({library(readxl)})
 source("R/00_config.R")
 source("R/07_unitroot.R")
+source("R/02_prevailing_mean.R")
 
 panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
 panel$date <- as.Date(panel$date)
@@ -22,13 +23,11 @@ skew <- function(x) { x <- x - mean(x); mean(x^3) / mean(x^2)^1.5 }
 kurt <- function(x) { x <- x - mean(x); mean(x^4) / mean(x^2)^2 }
 
 adf_row <- function(x) {
-  a <- tryCatch(adf_test(x), error = function(e) NULL)
-  if (is.null(a)) return(NA_real_)
+  a <- adf_test(x)
   a$statistic
 }
 adf_sig <- function(x) {
-  a <- tryCatch(adf_test(x), error = function(e) NULL)
-  if (is.null(a)) return(NA_character_)
+  a <- adf_test(x)
   a$significance
 }
 
@@ -58,14 +57,16 @@ gw <- gw[order(gw$date), ]
 sub <- gw[gw$date >= as.Date(CONFIG$SAMPLE_START) &
           gw$date <= as.Date(CONFIG$SAMPLE_END), ]
 
-# OOS split point: first out-of-sample target month (W rolling months in)
+# The descriptive split uses the actual first h=1 target.
 W <- CONFIG$W_ROLLING
-oos_date <- panel$date[W + 1L]
+first_target <- prevailing_mean(panel[[CONFIG$TARGET]], h = 1L, w = W)$target_index[1L]
+oos_date <- panel$date[first_target]
 
 tabA <- rbind(
   block("A: target (full sample)", panel, CONFIG$TARGET),
   transform(
-    block("A: target (in-sample, first W months)", panel[1:W, ], CONFIG$TARGET),
+    block("A: target (before first h=1 target)",
+          panel[seq_len(first_target - 1L), ], CONFIG$TARGET),
     Panel = "A: target (in-sample)"
   ),
   transform(

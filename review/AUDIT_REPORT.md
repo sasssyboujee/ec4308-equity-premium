@@ -1,10 +1,29 @@
 # EC4308 — Independent Self-Audit Report
 
-**Audited:** Tue 28 Oct 2026 (~02:00–02:30 SGT), by 4 independent subagents
-(data / models / statistics / report+deck) plus coordinating-agent
+> **Historical audit, superseded by the current code corrections.** Cash units,
+> target labels, tuning, expanded predictors, ADF and constrained combinations
+> required further fixes. Earlier clean-run/results claims are not current
+> verification. See [README](../README.md); report/slides are deferred.
+
+**Original audit:** Wed 28 Oct 2026 (~02:00–02:30 SGT), by 4 independent
+subagents (data / models / statistics / report+deck) plus coordinating-agent
 re-computation and code-review passes. **Rule for all auditors:** read-only,
-own throwaway code, no repo edits; findings with file:line evidence.
-All fixes below are applied, re-verified, committed and pushed.
+own throwaway code, no repo edits; findings with file:line evidence. The
+original audit's fixes were applied and re-verified at that time. The
+2026-11-01 follow-up changes described below are in the working tree and have
+not been committed or pushed.
+
+> **Superseding update (2026-11-01):** a follow-up audit found that rolling
+> model training paired same-month predictors and returns instead of pairing
+> \(X_s\) with \(y_{s+h}\). The original verdict and numerical claim map
+> below are historical and must not be used as current results. The harness
+> and benchmark were corrected, the full forecasts and dependent outputs
+> regenerated, and the current claim map is at the end of this file. The
+> final report, presentation, and 38-file submission archive were rebuilt and
+> verified. The corrected 158-predictor rerun is complete: all 27 model /
+> horizon OOS $R^2$ estimates are negative (−12.265% to −0.228%), with 658,
+> 654, and 636 forecasts for h=1,3,12. Its summary was regenerated. No
+> clean-directory reproduction has been completed.
 
 ## Verdict summary
 
@@ -91,27 +110,31 @@ All PASS. Notes (documented conventions, immaterial):
 ## How YOU can verify this yourself (3 commands)
 
 ```bash
-cd "/Users/sasi/EC4308 project"           # or wherever you cloned it
-Rscript R/11_evaluate.R                    # must reproduce the tables exactly
-git status --short                        # must print nothing
-Rscript data/03_validate_signals.R        # must print "Overall signal-month
-                                          #  match: 99.9805 %"
+Rscript R/99_demo_synthetic.R              # target-alignment/sample-count checks
+Rscript R/11_evaluate.R                    # regenerate evaluation tables
+git diff --check                           # verify patch whitespace
+Rscript data/03_validate_signals.R         # must print "Overall signal-month
+                                           # match: 99.9805 %"
 ```
-The full pipeline is deterministic (seed 4308, no bootstrapping/MCMC): any
-rerun from the same raw data reproduces every number bit-for-bit.
+The corrected code uses fixed seeds (seed 4308 and single-threaded ranger).
+However, a complete clean-directory rerun from the final submission ZIP has
+not been performed; bit-for-bit reproducibility should not be claimed yet.
 
 ## Claim → evidence map (headline claims)
 
 | Claim (report/deck) | Backing computation |
 |---|---|
-| No model beats the PM; R²_OOS −8.2% to −50.3% | `table2_h{1,3,12}.csv`, recomputed from `forecasts_h*.csv` |
-| PM RMSE 4.399 (h=1) | `table2_h1.csv` |
-| Hit rates 53–58% vs PM 60% | `table2_h*.csv` (HR, HR_pm columns) |
-| Neely replication +0.36/+0.66/+0.76% (CW p ≤ 0.03) | `table5_neely_replication.csv` |
-| Drawdown −50.2% → −23.4%; Sharpe 0.767 vs 0.777 | `table3_h1.csv` (BH/PM reference rows) |
-| MV ΔU +1.31/+1.22/+1.06/+0.73% p.a. (10 bps) | `table3_h1.csv` |
-| Subperiods −10.5/−1.2/−13.4% (rlasso, h=1) | recomputed from `forecasts_h1.csv` + `panel.csv` |
+| All OOS R² estimates negative; range −15.49% to −0.38% | `table2_h{1,3,12}.csv` |
+| PM RMSE 4.403 / 4.409 / 4.443 (h=1/3/12) | `table2_h{1,3,12}.csv` |
+| No statistically significant DM/CW improvement; minimum one-sided DM p=0.677 and CW p=0.105 | `table2_h{1,3,12}.csv` |
+| Corrected Neely VOL(2,9)/VOL(2,12)/VOL(3,12): +0.19/+0.11/+0.53%; no 5% significance | `table5_neely_replication.csv` |
+| LASSO switching h=1: wealth $232.7 vs $341.9; max drawdown −44.4% vs −50.2% | `table3_h1.csv` |
+| h=1 mean-variance ΔU negative for every forecast model at 10 bps | `table3_h1.csv` |
+| Expanded 158-predictor robustness: all 27 OOS R² estimates negative, −12.265% to −0.228% | `data/processed/expanded_variant_summary.csv` |
+| LASSO subperiod R² h=1: −0.63/−1.20/−1.94% | recomputed from `forecasts_h1.csv` + `panel.csv` |
 | Signals match published 99.98% | `signal_validation.csv` (2/10,262 months) |
-| Determinism | two independent runs bit-identical; from-scratch zip rerun identical |
+| Forecast counts | h=1: 658; h=3: 654; h=12: 636, with no missing forecasts |
 
-
+The corrected outputs do not support the previous claims of significant
+positive Neely replication, model inferiority by DM tests, drawdown halving,
+or positive h=1 mean-variance gains.

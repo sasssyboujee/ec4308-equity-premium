@@ -7,6 +7,7 @@
 #   figure2_r2oos.png     Out-of-sample R^2 (%) by model and horizon.
 #   figure3_gr_weights.png  Granger-Ramanathan combination weights over time
 #                           (h = 1), estimated from past OOS errors.
+#   figure4_subperiods.png  LASSO OOS R2 by subperiod (deck slide 8).
 # Usage (repo root):  Rscript R/13_figures.R
 # =============================================================================
 
@@ -24,9 +25,9 @@ gw <- as.data.frame(read_excel(
   file.path(CONFIG$DATA_RAW, "GoyalWelchZafirov_PredictorData.xlsx"),
   sheet = "Monthly"))
 gw$date <- as.Date(sprintf("%06d01", gw$yyyymm), "%Y%m%d")
-m <- match(panel$date, gw$date)
-eq_r <- 100 * gw$ret[m]
-tb_r <- gw$tbl[m] / 12
+asset_returns <- monthly_asset_returns(gw, panel$date)
+eq_r <- asset_returns$equity
+tb_r <- asset_returns$cash
 
 MODELS <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf",
             "equal_comb", "gr_comb")
@@ -47,7 +48,8 @@ for (h in CONFIG$HORIZONS) {
   sw_pm   <- switching_backtest(eq_r[idx], tb_r[idx], fc$pm,     fee_bps = 10)
   wealth_list[[length(wealth_list) + 1L]] <- rbind(
     data.frame(horizon = h, date = panel$date[idx], strategy = "buy-and-hold",
-               wealth = cumprod(1 + eq_r[idx] / 100)),
+               wealth = switching_backtest(eq_r[idx], tb_r[idx],
+                                          rep(1, length(idx)), fee_bps = 10)$wealth),
     data.frame(horizon = h, date = panel$date[idx], strategy = "Prevailing Mean",
                wealth = sw_pm$wealth),
     data.frame(horizon = h, date = panel$date[idx], strategy = paste0("Switching (", best, ")"),
@@ -60,7 +62,8 @@ p1 <- ggplot(wdf, aes(date, wealth, color = strategy)) +
   geom_line(linewidth = 0.5) +
   facet_wrap(~horizon, scales = "free_y") +
   labs(x = NULL, y = "Wealth per $1 invested",
-       title = "Binary Switching Strategy: cumulative wealth (net of 10 bps costs)") +
+       title = "Binary Switching Strategy: cumulative wealth (net of 10 bps costs)",
+       subtitle = "Displayed model selected retrospectively by full-OOS R-squared") +
   theme(legend.position = "bottom")
 ggsave(file.path(CONFIG$OUTPUT_FIGURES, "figure1_wealth.png"), p1,
        width = 10, height = 4.2, dpi = 300)
@@ -124,25 +127,28 @@ ggsave(file.path(CONFIG$OUTPUT_FIGURES, "figure3_gr_weights.png"), p3,
 # ---- Figure 4: LASSO R2_OOS by subperiod (used on deck slide 8) --------------
 fc1 <- read.csv(file.path(CONFIG$DATA_PROCESSED, "forecasts_h1.csv"))
 fc1$date <- panel$date[fc1$target_index]
-blocks <- list("1971-1999" = c("1971-02-01", "1999-12-01"),
+blocks <- list("1971-1999" = c("1971-03-01", "1999-12-01"),
                "2000-2011" = c("2000-01-01", "2011-12-01"),
                "2012-2025" = c("2012-01-01", "2025-12-01"))
 d4 <- do.call(rbind, lapply(names(blocks), function(b) {
   keep <- fc1$date >= as.Date(blocks[[b]][1]) & fc1$date <= as.Date(blocks[[b]][2])
   a <- y[fc1$target_index[keep]]
-  data.frame(block = b,
+  data.frame(block = b, n = sum(keep),
+             first_target = min(fc1$date[keep]),
+             last_target = max(fc1$date[keep]),
              R2 = 100 * (1 - sum((a - fc1$rlasso[keep])^2) /
                             sum((a - fc1$pm[keep])^2)))
 }))
 d4$block <- factor(d4$block, levels = names(blocks))
+write.csv(d4, file.path(CONFIG$OUTPUT_TABLES, "table_subperiods_h1.csv"),
+          row.names = FALSE)
 p4 <- ggplot(d4, aes(block, R2)) +
   geom_col(fill = "#1F365C", width = 0.6) +
   geom_hline(yintercept = 0, linewidth = 0.3) +
   geom_text(aes(label = sprintf("%.1f", R2)),
             vjust = ifelse(d4$R2 < 0, 1.4, -0.4), size = 4) +
   labs(x = NULL, y = "Out-of-sample R² (%)",
-       title = "LASSO out-of-sample R² by subperiod (h = 1)",
-       subtitle = "Closest to the prevailing mean exactly in the 2000–2011 crisis decade") +
+       title = "LASSO out-of-sample R² by subperiod (h = 1)") +
   theme_bw(base_size = 12)
 ggsave(file.path(CONFIG$OUTPUT_FIGURES, "figure4_subperiods.png"), p4,
        width = 6, height = 3.6, dpi = 300)

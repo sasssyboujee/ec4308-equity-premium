@@ -10,7 +10,6 @@
 # =============================================================================
 
 source("R/00_config.R")
-suppressMessages(library(dplyr))
 
 fmt <- function(x, d = 3) formatC(x, format = "f", digits = d)
 sig_tex <- function(s) gsub("%", "\\\\%", s)
@@ -36,7 +35,7 @@ lines <- c(
   "\\toprule",
   "Series & Mean & SD & Min & Max & Skew & Kurt & ADF & Sig. \\\\",
   "\\midrule",
-  "\\multicolumn{9}{l}{\\emph{Panel A: log equity premium (\\%, monthly)}} \\\\",
+  "\\multicolumn{9}{l}{\\emph{Panel A: simple equity premium (\\%, monthly)}} \\\\",
   sprintf("$y_t$ (full sample) & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
           fmt(tgt_full$Mean, 3), fmt(tgt_full$SD, 3), fmt(tgt_full$Min, 2),
           fmt(tgt_full$Max, 2), fmt(tgt_full$Skew, 2), fmt(tgt_full$Kurt, 2),
@@ -65,9 +64,9 @@ lines <- c(lines,
   "\\end{tabular}",
   "\\begin{tablenotes}",
   "\\footnotesize",
-  "\\item ADF: augmented Dickey--Fuller statistic with intercept and trend; lag order by BIC; critical values $-4.04/-3.45/-3.15$ (1\\%/5\\%/10\\%). $T=899$ monthly observations.",
+  "\\item ADF: intercept and trend, common-sample BIC lag selection; MacKinnon (2010) asymptotic critical values $-3.959/-3.410/-3.127$ (1\\%/5\\%/10\\%). $T=899$ monthly observations before ADF lags.",
   "\\item Skewness and kurtosis are population moments; kurtosis is NOT excess (a normal distribution has kurtosis 3).",
-  "\\item The premium is $100\\,(\\ln(1+R^m)-\\ln(1+R^f))$; macro predictors enter the models with one to six lags; technical signals are the 14 binary rules of Neely et al. (2014).",
+  "\\item The premium is $100\\,(R^m-R^f)$ using monthly simple returns; macro predictors enter the models with one to six lags; technical signals are the 14 binary rules of Neely et al. (2014).",
   "\\end{tablenotes}",
   "\\end{threeparttable}",
   "\\end{table}"
@@ -78,20 +77,22 @@ writeLines(lines, file.path(CONFIG$OUTPUT_TABLES, "table1_tex.tex"))
 blocks2 <- list()
 for (h in CONFIG$HORIZONS) {
   f2 <- file.path(CONFIG$OUTPUT_TABLES, sprintf("table2_h%d.csv", h))
-  if (!file.exists(f2)) { cat("Skipping missing", f2, "\n"); next }
+  if (!file.exists(f2)) stop("Missing required accuracy table: ", f2, call. = FALSE)
   t2 <- read.csv(f2)
+  oos_n <- nrow(read.csv(file.path(
+    CONFIG$DATA_PROCESSED, sprintf("forecasts_h%d.csv", h)
+  )))
   rows <- apply(t2, 1, function(r) {
-    sprintf("%s & %s & %s & %s & %s & %s%s & %s%s & %s%s \\\\",
+    sprintf("%s & %s & %s & %s & %s & %s & %s%s & %s%s \\\\",
             esc_tex(r["model"]), fmt(as.numeric(r["RMSE"]), 3), fmt(as.numeric(r["MAE"]), 3),
             fmt(as.numeric(r["R2_OOS_pct"]), 2), fmt(as.numeric(r["HR"]), 2),
             fmt(as.numeric(r["DM_RMSE_stat"]), 2),
             fmt(as.numeric(r["DM_RMSE_p"]), 3), stars(as.numeric(r["DM_RMSE_p"])),
-            fmt(as.numeric(r["DM_MAE_p"]), 3), stars(as.numeric(r["DM_MAE_p"])),
-            fmt(as.numeric(r["CW_p"]), 3), stars(as.numeric(r["CW_p"])))
+            fmt(as.numeric(r["DM_MAE_p"]), 3), stars(as.numeric(r["DM_MAE_p"])))
   })
   blocks2[[length(blocks2) + 1L]] <- c(
-    sprintf("\\multicolumn{9}{l}{\\emph{Panel: $h=%d$ (OOS $n=%d$; PM hit rate %.2f)}} \\\\",
-            h, 659 - (h - 1), t2$HR_pm[1]),
+    sprintf("\\multicolumn{8}{l}{\\emph{Panel: $h=%d$ (OOS $n=%d$; PM hit rate %.2f)}} \\\\",
+            h, oos_n, t2$HR_pm[1]),
     rows
   )
 }
@@ -102,9 +103,9 @@ lines2 <- c(
   "\\label{tab:table2}",
   "\\small",
   "\\begin{threeparttable}",
-  "\\begin{tabular}{lcccccccc}",
+  "\\begin{tabular}{lccccccc}",
   "\\toprule",
-  "Model & RMSE & MAE & $R^2_{OOS}$ (\\%) & HR & $DM_{RMSE}$ & $p_{DM}$ & $p_{MAE}$ & $p_{CW}$ \\\\",
+  "Model & RMSE & MAE & $R^2_{OOS}$ (\\%) & HR & $DM_{RMSE}$ & $p_{DM}$ & $p_{MAE}$ \\\\",
   "\\midrule",
   unlist(blocks2),
   "\\bottomrule",
@@ -112,7 +113,7 @@ lines2 <- c(
   "\\begin{tablenotes}",
   "\\footnotesize",
   "\\item $R^2_{OOS}$: Campbell--Thompson (2008), in percent vs. the prevailing mean; negative values mean the model is less accurate than the benchmark. HR: hit rate, the fraction of months in which the forecast sign matches the realized sign (direction-of-change loss).",
-  "\\item $DM$: Diebold--Mariano (1995) on squared errors, one-sided H1 ``model more accurate''; $p_{MAE}$: DM on absolute errors; $p_{CW}$: Clark--West (2007) adjusted-MSPE one-sided $p$-value (appendix check). $^{*}/^{**}/^{***}$: 10\\%/5\\%/1\\%.",
+  "\\item $DM$: Diebold--Mariano on squared errors, one-sided H1 ``model more accurate''; $p_{MAE}$: absolute-error DM. Bartlett HAC bandwidth is $h-1$, a maintained inference choice. $^{*}/^{**}/^{***}$: 10\\%/5\\%/1\\%.",
   "\\end{tablenotes}",
   "\\end{threeparttable}",
   "\\end{table}"
@@ -123,7 +124,7 @@ writeLines(lines2, file.path(CONFIG$OUTPUT_TABLES, "table2_tex.tex"))
 blocks3 <- list()
 for (h in CONFIG$HORIZONS) {
   f3 <- file.path(CONFIG$OUTPUT_TABLES, sprintf("table3_h%d.csv", h))
-  if (!file.exists(f3)) { cat("Skipping missing", f3, "\n"); next }
+  if (!file.exists(f3)) stop("Missing required economic table: ", f3, call. = FALSE)
   t3 <- read.csv(f3)
   rows <- apply(t3, 1, function(r) {
     sprintf(paste0("%s & %s & %s & %s & %s & %s & %s & %s & %s & %s ",
@@ -153,22 +154,22 @@ lines3 <- c(
   "\\begin{landscape}",
   "\\begin{table}[htbp]",
   "\\centering",
-  "\\caption{Economic value net of transaction costs.}",
+  "\\caption{Economic strategy outcomes net of transaction costs.}",
   "\\label{tab:table3}",
   "\\footnotesize",
   "\\begin{threeparttable}",
   "\\begin{tabular}{lcccccccccccccc}",
   "\\toprule",
-  "& \\multicolumn{5}{c}{Binary switching (10 bps)} & \\multicolumn{2}{c}{Switching wealth} & \\multicolumn{3}{c}{MV $\\Delta U$ (\\% p.a.)} & \\multicolumn{2}{c}{MV (10 bps)} \\\\",
-  "\\cmidrule(lr){2-6} \\cmidrule(lr){7-8} \\cmidrule(lr){9-11} \\cmidrule(lr){12-13}",
-  "Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps & 10 bps & 5 bps & 20 bps & CER & Sharpe \\\\",
+  "& \\multicolumn{6}{c}{Binary switching (10 bps)} & \\multicolumn{2}{c}{Switching wealth} & \\multicolumn{3}{c}{MV $\\Delta U$ (\\% p.a.)} & \\multicolumn{3}{c}{MV (10 bps)} \\\\",
+  "\\cmidrule(lr){2-7} \\cmidrule(lr){8-9} \\cmidrule(lr){10-12} \\cmidrule(lr){13-15}",
+  "Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps & 10 bps & 5 bps & 20 bps & CER & Sharpe & Mean $w$ \\\\",
   "\\midrule",
   unlist(blocks3),
   "\\bottomrule",
   "\\end{tabular}",
   "\\begin{tablenotes}",
   "\\footnotesize",
-  "\\item Switching: holds the S\\&P 500 when the premium forecast is positive, T-bills otherwise; wealth per \\$1, net of transaction costs; MaxDD = maximum drawdown; Exp. = average equity exposure; sensitivity at 5/20 bps. Reference rows: Buy-and-Hold and the Prevailing-Mean-driven strategy.",
+  "\\item Switching: holds equity when the forecast is positive, monthly risk-free cash otherwise. Every strategy starts in cash, pays equity entry and subsequent turnover costs, and has no terminal liquidation. Switch counts include entry. MaxDD = maximum drawdown; Exp. = mean equity exposure; cash uses realized Rfree, not the annual tbl predictor. Each h-step forecast predicts one month's return h months ahead, not a cumulative return.",
   "\\item MV: mean--variance investor with $\\gamma=3$, $w_t\\in[0,1.5]$; $\\Delta U$ = annualized certainty-equivalent gain over the benchmark allocation in percentage points; CER = certainty-equivalent return of the strategy (\\% p.a.).",
   "\\end{tablenotes}",
   "\\end{threeparttable}",
@@ -213,5 +214,39 @@ linesA1 <- c(
 )
 writeLines(linesA1, file.path(CONFIG$OUTPUT_TABLES, "tableA1_tex.tex"))
 
-cat("Wrote table1_tex.tex, table2_tex.tex, table3_tex.tex, tableA1_tex.tex to",
-    CONFIG$OUTPUT_TABLES, "\n")
+# ------------------------------------------- h=1 subperiod results -----------
+subperiods <- read.csv(file.path(CONFIG$OUTPUT_TABLES,
+                                 "table_subperiods_h1.csv"))
+subperiod_rows <- apply(subperiods, 1, function(r) {
+  sprintf("%s & %s & %s & %s & %s \\\\",
+          esc_tex(r["block"]), r["n"],
+          r["first_target"], r["last_target"],
+          fmt(as.numeric(r["R2"]), 2))
+})
+lines_subperiods <- c(
+  "\\begin{table}[htbp]",
+  "\\centering",
+  "\\caption{Descriptive LASSO out-of-sample accuracy by subperiod ($h=1$).}",
+  "\\label{tab:subperiods}",
+  "\\small",
+  "\\begin{threeparttable}",
+  "\\begin{tabular}{lrllr}",
+  "\\toprule",
+  "Subperiod & $n$ & First target & Last target & $R^2_{OOS}$ (\\%) \\\\",
+  "\\midrule",
+  subperiod_rows,
+  "\\bottomrule",
+  "\\end{tabular}",
+  "\\begin{tablenotes}",
+  "\\footnotesize",
+  "\\item $R^2_{OOS}$ is computed against the prevailing mean within each subperiod. These comparisons are descriptive and not causal.",
+  "\\item Source files: \\texttt{forecasts\\_h1.csv} and \\texttt{panel.csv}. Generated by \\texttt{R/13\\_figures.R}.",
+  "\\end{tablenotes}",
+  "\\end{threeparttable}",
+  "\\end{table}"
+)
+writeLines(lines_subperiods,
+           file.path(CONFIG$OUTPUT_TABLES, "table_subperiods_h1_tex.tex"))
+
+cat("Wrote table1_tex.tex, table2_tex.tex, table3_tex.tex, tableA1_tex.tex,",
+    "and table_subperiods_h1_tex.tex to", CONFIG$OUTPUT_TABLES, "\n")

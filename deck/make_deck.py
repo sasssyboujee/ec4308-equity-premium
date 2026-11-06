@@ -9,21 +9,33 @@
 #     python3 deck/make_deck.py
 # =============================================================================
 import csv, os
-from pptx import Presentation
-from pptx.util import Inches, Pt
-from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIG = os.path.join(ROOT, "output", "figures")
 TAB = os.path.join(ROOT, "output", "tables")
 
-DARK = RGBColor(0x1F, 0x36, 0x5C)
-ACC  = RGBColor(0xC0, 0x50, 0x2D)
-
 def load_table(name):
     with open(os.path.join(TAB, name), newline="") as f:
         return list(csv.DictReader(f))
+
+t2 = load_table("table2_h1.csv")
+t3 = load_table("table3_h1.csv")
+t5 = load_table("table5_neely_replication.csv")
+if not t2 or not t5 or "CW_p" not in t2[0] or "CW_p" not in t5[0]:
+    raise SystemExit(
+        "Presentation generation is deferred: the corrected analysis removed "
+        "unsupported CW p-values. Review the simple-return target, chronological "
+        "tuning and updated results before revising this legacy slide template. "
+        "No presentation has been saved."
+    )
+
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN
+
+DARK = RGBColor(0x1F, 0x36, 0x5C)
+ACC  = RGBColor(0xC0, 0x50, 0x2D)
 
 prs = Presentation()
 prs.slide_width  = Inches(13.333)
@@ -56,17 +68,24 @@ def add_notes(slide, text):
     slide.notes_slide.notes_text_frame.text = text
 
 # ---- key numbers -------------------------------------------------------------
-t2 = load_table("table2_h1.csv")
-t3 = load_table("table3_h1.csv")
-t5 = load_table("table5_neely_replication.csv")
 gr = next(r for r in t2 if r["model"] == "gr_comb")
 rl = next(r for r in t2 if r["model"] == "rlasso")
+hr_range = (min(float(r["HR"]) for r in t2),
+            max(float(r["HR"]) for r in t2))
+hr_pm = float(t2[0]["HR_pm"])
+min_dm_p = min(float(r["DM_RMSE_p"]) for r in t2)
+min_cw_p = min(float(r["CW_p"]) for r in t2)
+pm_rmse = float(t2[0]["RMSE_pm"])
 bh = next(r for r in t3 if r["model"] == "Buy-and-Hold")
 pm = next(r for r in t3 if r["model"] == "Prevailing Mean")
 gr3 = next(r for r in t3 if r["model"] == "gr_comb")
 post = next(r for r in t3 if r["model"] == "postlasso")
+rl_econ = next(r for r in t3 if r["model"] == "rlasso")
 vol212 = next(r for r in t5 if r["sample"] == "Neely sample 1966-2011" and r["signal"] == "VOL_2_12")
+vol29 = next(r for r in t5 if r["sample"] == "Neely sample 1966-2011" and r["signal"] == "VOL_2_9")
 vol312 = next(r for r in t5 if r["sample"] == "Neely sample 1966-2011" and r["signal"] == "VOL_3_12")
+ext29 = next(r for r in t5 if r["sample"] == "Extension 2012-2025" and r["signal"] == "VOL_2_9")
+ext212 = next(r for r in t5 if r["sample"] == "Extension 2012-2025" and r["signal"] == "VOL_2_12")
 ext = next(r for r in t5 if r["sample"] == "Extension 2012-2025" and r["signal"] == "VOL_3_12")
 
 # ---- 1. title -----------------------------------------------------------------
@@ -92,7 +111,7 @@ add_bullets(s, [
     ("Goyal & Welch: essentially no macro fundamental beats the prevailing mean out-of-sample; Goyal–Welch–Zafirov (2024) reach the same conclusion with an expanded dataset of 57 monthly series.", 0),
     ("Neely et al. (2014): 14 technical indicators (MA, MOM, OBV) DO predict the premium out-of-sample on 1966–2011.", 0),
     ("Our question: with modern regularized ML, do technical indicators + macro lags beat the prevailing mean on the extended 1951–2025 sample?", 0),
-    ("We replicate Neely et al. exactly (signals match 99.98%), then extend the sample to 2025.", 0),
+    ("We match 99.98% of published signal-months; the time-aligned Neely regression has 178 initial pairs versus 181 months in the original design.", 0),
 ])
 add_notes(s, "Vienna (1:00): set up the puzzle. Emphasise: replication first, extension second.")
 
@@ -105,7 +124,7 @@ add_bullets(s, [
     ("Technical: 14 binary Neely signals — 6 MA, 2 MOM, 6 OBV — computed from raw index level + S&P 500 volume.", 0),
     ("Sample: 1951-02 → 2025-12; predictors aligned to 'observable at end of month t' — no lookahead leakage.", 0),
     ("Validation: our computed signals match the published Neely series in 99.98% of signal-months (12/14 exact).", 0),
-    ("Fixed 240-month rolling window; first OOS forecast 1971-02; n = 659 OOS months at h = 1.", 0),
+    ("Fixed 240-pair rolling window; first h=1 forecast targets 1971-03; n = 658 OOS months.", 0),
 ])
 add_notes(s, "Leon (1:15): data sources, alignment convention, the 99.98% validation number, sample dates.")
 
@@ -125,60 +144,63 @@ add_notes(s, "En Shao (1:30): one line per method, stress the no-lookahead CV pr
 
 # ---- 5. replication -------------------------------------------------------------
 s = prs.slides.add_slide(BLANK)
-add_title(s, "Step 1: we replicate Neely et al. (2014) — their result survives",
+add_title(s, "Time-aligned Neely et al. (2014) estimates",
           "Expanding-window bivariate regressions, one signal at a time, Clark–West test")
 add_bullets(s, [
-    (f"On their 1966–2011 sample: VOL_2_12 R²_OOS = +{vol212['R2_OOS_pct']}% (CW p = {vol212['CW_p']}), "
-     f"VOL_3_12 = +{vol312['R2_OOS_pct']}% (p = {vol312['CW_p']}) — positive and significant, same sign and order of magnitude as published (+0.33%).", 0),
-    ("Volume-based (OBV) signals carry the predictive content; MA/MOM are weaker — the same pattern as the paper.", 0),
-    ("This validates our data pipeline and test implementation before we extend the sample.", 0),
-    (f"Extension 2012–2025: every signal turns negative/insignificant (VOL_3_12 = {ext['R2_OOS_pct']}%, p = {ext['CW_p']}).", 0),
+    (f"1966–2011: VOL_2_9 R²_OOS = {vol29['R2_OOS_pct']}% (CW p = {vol29['CW_p']}), "
+     f"VOL_2_12 = {vol212['R2_OOS_pct']}% (p = {vol212['CW_p']}), "
+     f"VOL_3_12 = {vol312['R2_OOS_pct']}% (p = {vol312['CW_p']}).", 0),
+    ("These are three focal estimates; none of the six volume rules is significant at 5%.", 0),
+    ("The corrected expanding-window estimates use signal-month predictors to forecast the following month's return.", 0),
+    (f"Extension 2012–2025: selected VOL estimates are {ext29['R2_OOS_pct']}%, {ext212['R2_OOS_pct']}%, and {ext['R2_OOS_pct']}%.", 0),
 ])
-add_notes(s, "Sasi (1:15): replication = credibility. Show the numbers side by side with the published ones.")
+add_notes(s, "Sasi (1:15): explain the predictor/target timing change and report the recalculated estimates and tests.")
 
 # ---- 6. statistical results ------------------------------------------------------
 s = prs.slides.add_slide(BLANK)
-add_title(s, "Result 1: nothing beats the prevailing mean on the extended sample")
+add_title(s, "Result 1: nothing beats the prevailing mean on the extended sample",
+          "Main ML OOS targets: h=1 Mar 1971–Dec 2025; h=3 Jul 1971–Dec 2025; h=12 Jan 1973–Dec 2025")
 add_pic(s, os.path.join(FIG, "figure2_r2oos.png"), 0.6, 1.35, width=6.4)
 add_bullets(s, [
     ("All models show NEGATIVE R²_OOS at every horizon: the Goyal–Welch result, reproduced with modern ML.", 0),
-    (f"Best at h=1: GR combination R²_OOS = {gr['R2_OOS_pct']}%, rlasso = {rl['R2_OOS_pct']}% (PM RMSE 4.40 vs {gr['RMSE'][:5]}).", 0),
-    ("Hit rates 54–58% vs PM 60% — the direction of the premium is also hard to call.", 0),
-    ("Post-2000 (and post-2011) predictability decay drives the result: the information is real but transient.", 0),
+    (f"At h=1: LASSO R²_OOS = {rl['R2_OOS_pct']}%; GR = {gr['R2_OOS_pct']}% (PM RMSE {pm_rmse:.3f}).", 0),
+    (f"h=1 hit rates: {hr_range[0]:.1%}–{hr_range[1]:.1%} vs PM {hr_pm:.1%}.", 0),
+    (f"One-sided h=1 tests show no significant improvement (minimum DM p={min_dm_p:.3f}; CW p={min_cw_p:.3f}).", 0),
+    ("R²_OOS is a descriptive comparison with the prevailing-mean benchmark; it does not establish a causal mechanism.", 0),
 ], left=7.3, top=1.35, width=5.6, height=5.0)
 add_notes(s, "Sasi (1:15): negative results are results — correct execution matters more than a positive sign. Walk through the bar chart.")
 
 # ---- 7. economic results -----------------------------------------------------------
 s = prs.slides.add_slide(BLANK)
-add_title(s, "Result 2: forecasts still have economic value — drawdown control")
+add_title(s, "Economic strategies: negative h=1 utility gains")
 add_pic(s, os.path.join(FIG, "figure1_wealth.png"), 0.6, 1.4, width=7.2)
 add_bullets(s, [
-    (f"Switching (10 bps): model strategies cap the max drawdown at {float(post['sw_maxdd_10bps'])*100:.0f}% vs buy-and-hold {float(bh['sw_maxdd_10bps'])*100:.0f}%; terminal wealth ${post['sw_wealth_10bps']} vs ${bh['sw_wealth_bh']} for buy-and-hold.", 0),
-    (f"Mean–variance investor (γ=3): post-LASSO ΔU = +{post['mv_deltaU_10bps_pct']}% p.a., rlasso +{next(r['mv_deltaU_10bps_pct'] for r in t3 if r['model']=='rlasso')}% p.a., GR +{gr3['mv_deltaU_10bps_pct']}% p.a. (10 bps net).", 0),
-    ("Forecasts earn their keep as risk-management signals, not as point-forecast improvements.", 0),
+    (f"Switching (LASSO, 10 bps): max drawdown {float(rl_econ['sw_maxdd_10bps'])*100:.1f}% vs buy-and-hold {float(bh['sw_maxdd_10bps'])*100:.1f}%; terminal wealth ${float(rl_econ['sw_wealth_10bps']):.1f} vs ${float(bh['sw_wealth_bh']):.1f}.", 0),
+    (f"At h=1, 10 bps net, mean–variance ΔU: LASSO {float(rl_econ['mv_deltaU_10bps_pct']):+.2f}%, post-LASSO {float(post['mv_deltaU_10bps_pct']):+.2f}%, GR {float(gr3['mv_deltaU_10bps_pct']):+.2f}% p.a.", 0),
+    ("All h=1 forecast-based mean–variance utility differences are negative; fee sensitivity is reported in the paper.", 0),
 ], left=8.0, top=1.4, width=4.9, height=5.0)
-add_notes(s, "Sasi (1:15): Sharpe vs wealth trade-off; ΔU interpretation; fee sensitivity 5/20 bps in the report.")
+add_notes(s, "Sasi (1:15): report the forecast-strategy results as sample estimates; distinguish wealth, drawdown, and utility.")
 
-# ---- 8. interpretation -------------------------------------------------------------
+# ---- 8. subperiod comparisons ------------------------------------------------------
 s = prs.slides.add_slide(BLANK)
-add_title(s, "Why did predictability decay?")
+add_title(s, "How do results vary across subperiods?")
 add_pic(s, os.path.join(FIG, "figure4_subperiods.png"), 0.6, 1.5, width=6.2)
 add_bullets(s, [
-    ("Recession months drive the signal value: volume/MA rules earn their R² in a handful of crisis months (2000–02, 2008–09).", 0),
-    ("Post-2011: fewer deep drawdowns, a passive-dominated market, and faster arbitrage of published signals.", 0),
-    ("Regularized multivariate fits overfit relative to the simple bivariate design — shrinkage toward the mean is aggressive.", 0),
-    ("Consistent with Goyal–Welch–Zafirov (2024): the premium remains extremely hard to predict out-of-sample.", 0),
+    ("Subperiod R² comparisons are descriptive; they do not show that recessions cause changes in forecast performance.", 0),
+    ("This design does not test explanations involving passive flows or arbitrage speed.", 0),
+    ("The corrected Neely replication does not find 5% significance for the selected volume signals.", 0),
+    ("Macro-only and technical-only predictor-set comparisons are reported in the appendix.", 0),
 ], left=7.0, top=1.5, width=5.9, height=5.0)
-add_notes(s, "Vienna (1:00): economic interpretation, connect to the literature.")
+add_notes(s, "Vienna (1:00): describe the subperiod comparisons without presenting them as causal evidence.")
 
 # ---- 9. conclusion -------------------------------------------------------------------
 s = prs.slides.add_slide(BLANK)
 add_title(s, "Conclusion")
 add_bullets(s, [
-    ("We reproduce Neely et al. (2014) faithfully (99.98% signal match; positive VOL-signal R²_OOS on 1966–2011).", 0),
-    ("Extended to 2025, no model — regularized, tree-based, or combined — beats the prevailing mean on RMSE/MAE or direction.", 0),
-    ("Economic value persists: switching halves the max drawdown; MV gains of +1.2–1.5% p.a. net of costs.", 0),
-    ("Lesson: honest evaluation, disciplined windows and costs matter more than model complexity.", 0),
+    ("We match Neely et al.'s published signals in 99.98% of signal-months; none of the six time-aligned volume rules is significant at 5%.", 0),
+    ("Extended to 2025, all model R² estimates are negative; one-sided tests show no significant accuracy improvement, and hit rates are close to but not uniformly below the benchmark.", 0),
+    ("At h=1, the LASSO switching strategy has lower terminal wealth than buy-and-hold and a modestly smaller maximum drawdown; mean-variance ΔU is negative.", 0),
+    ("The corrected results do not support claiming that forecast-based strategies improve point accuracy or mean-variance utility.", 0),
 ])
 add_notes(s, "Vienna (0:45): wrap-up, hand over to Q&A.")
 

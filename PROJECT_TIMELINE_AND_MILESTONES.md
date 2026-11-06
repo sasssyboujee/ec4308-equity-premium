@@ -1,5 +1,10 @@
 # EC4308 Project Roadmap & Milestones (Post-Feedback Edition)
 
+> **Historical roadmap, not current verification.** The code audit found
+> additional unit, tuning and expanded-data defects. Use [README](README.md)
+> and regenerated outputs. Earlier claims of full clean reproducibility and
+> results below do not certify the corrected code. Report/slides remain deferred.
+
 > **AI-handoff status (Mon 26 Oct, ~16:45 SGT)** — the whole pipeline now runs
 > under AI execution with human review checkpoints in `review/`:
 > - ✅ **Phase 1 (data) done**: aligned panel 1951-02→2025-12 (899 mo, 98 predictors),

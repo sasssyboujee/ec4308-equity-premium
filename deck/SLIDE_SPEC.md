@@ -110,7 +110,7 @@ elements.
   2. "Goyal & Welch: essentially no macro fundamental beats the prevailing mean out-of-sample; Goyal–Welch–Zafirov (2024) reach the same conclusion with an expanded dataset of 57 monthly series."
   3. "Neely et al. (2014): 14 technical indicators (MA, MOM, OBV) DO predict the premium out-of-sample on 1966–2011."
   4. "Our question: with modern regularized ML, do technical indicators + macro lags beat the prevailing mean on the extended 1951–2025 sample?"
-  5. "We replicate Neely et al. exactly (signals match 99.98%), then extend the sample to 2025."
+  5. "We match Neely et al.'s published signals in 99.98% of signal-months; the corrected design has 178 paired observations before January 1966, versus 181 months in the original."
 - **Design:** highlight bullet 4 in accent.
 - **Speaker notes:** "Vienna (1:00): set up the puzzle. Emphasise: replication first, extension second."
 
@@ -122,8 +122,8 @@ elements.
   3. "Technical: 14 binary Neely signals — 6 MA, 2 MOM, 6 OBV — from raw index level + S&P 500 volume."
   4. "Sample: 1951-02 → 2025-12; predictors aligned to 'observable at end of month t' — no lookahead."
   5. "Validation: our signals match the published Neely series in 99.98% of signal-months (12/14 exact)."
-  6. "Fixed 240-month rolling window; first OOS forecast 1971-02; 659 OOS months at h = 1."
-- **Display numbers:** 899 months · 98 predictors · 99.98% · 659 OOS (h=1) · 1951–2025.
+  6. "Fixed 240-pair rolling window; first h=1 target is 1971-03; 658 OOS months."
+- **Display numbers:** 899 months · 98 predictors · 99.98% · 658 OOS (h=1) · 1951–2025.
 - **Speaker notes:** "Leon (1:15): data sources, alignment convention, the 99.98% validation number, sample dates."
 
 ### Slide 4 — Methods (speaker: En Shao, 1:30, no figure)
@@ -139,71 +139,70 @@ elements.
 - **Design:** model list as a grey panel; stress "no lookahead / inside the window" in accent.
 - **Speaker notes:** "En Shao (1:30): one line per method, stress the no-lookahead CV protocol and the GR constraint."
 
-### Slide 5 — Replication credibility check (speaker: Sasi, 1:15, no figure)
-- **Title:** "Step 1: we replicate Neely et al. (2014) — their result survives"
+### Slide 5 — Time-aligned Neely replication (speaker: Sasi, 1:15, no figure)
+- **Title:** "Time-aligned Neely et al. (2014) estimates"
 - **Subtitle:** "Expanding-window bivariate regressions, one signal at a time, Clark–West test"
 - **Mini-table (exact values — do not round):**
 
   | Signal | 1966–2011 R²_OOS | CW p | 2012–2025 R²_OOS | CW p |
   |---|---|---|---|---|
-  | VOL(2,9) | +0.36% | 0.017 | −6.92% | 0.892 |
-  | VOL(2,12) | +0.66% | 0.015 | −4.67% | 0.702 |
-  | VOL(3,12) | +0.76% | 0.029 | −1.28% | 0.429 |
+  | VOL(2,9) | +0.19% | 0.193 | −1.51% | 0.914 |
+  | VOL(2,12) | +0.11% | 0.247 | −0.95% | 0.749 |
+  | VOL(3,12) | +0.53% | 0.077 | −0.31% | 0.442 |
 
   (Source: `output/tables/table5_neely_replication.csv`, rows with
-  sample = "Neely sample 1966-2011" / "Extension 2012-2025".)
+  sample = "Neely sample 1966-2011" / "Extension 2012-2025". The corrected
+  design has 178 paired observations before the January 1966 forecast.)
 - **Bullets:**
-  1. "Volume-based (OBV) signals carry the predictive content; MA/MOM are weaker — the same pattern as the paper."
-  2. "Published VOL(2,12): +0.33% — same sign, significance and order of magnitude as ours."
-  3. "Extension 2012–2025: every signal turns negative/insignificant."
-  4. "This validates our data pipeline and test implementation before we extend the sample."
+  1. "These are three focal positive volume estimates; none of the six volume rules is significant at 5% after correcting predictor/target timing."
+  2. "The corrected estimate does not reproduce the published VOL(2,12) significance."
+  3. "Extension 2012–2025: the three selected VOL estimates are negative and insignificant."
+  4. "The signal series match 99.98% of published signal-months; predictive replication is a separate result."
 - **Speaker notes:** "Sasi (1:15): replication = credibility. Show the numbers side by side with the published ones."
 
 ### Slide 6 — Result 1: statistical accuracy (speaker: Sasi, 1:15, FIGURE)
 - **Title:** "Result 1: nothing beats the prevailing mean on the extended sample"
+- **Subtitle:** "Main ML OOS targets: h=1 Mar 1971–Dec 2025; h=3 Jul 1971–Dec 2025; h=12 Jan 1973–Dec 2025"
 - **Figure:** `output/figures/figure2_r2oos.png` — LEFT, x=0.6, width=6.4 in, vertically centered.
   - **Caption (below figure, 11 pt grey):** "Out-of-sample R² (%) versus the prevailing mean by model and horizon. Negative values indicate lower accuracy than the benchmark."
 - **Bullets (RIGHT, x=7.3, width=5.6 in):**
   1. "All models show NEGATIVE R²_OOS at every horizon: the Goyal–Welch result, reproduced with modern ML."
-  2. "Best at h=1: LASSO R²_OOS = −8.8%; GR combination −10.0% (PM RMSE 4.399)."
-  3. "Worst: PLS −40.6%, Random Forest −48.4% (h=1)."
-  4. "Hit rates 53–58% vs PM 60% — the direction of the premium is also hard to call."
-  5. "Stable across horizons: h=3 −8.2%, h=12 −11.5% (LASSO)."
-- **Display numbers:** **−8.8%** (accent, large) · 4.399 · 60% · −48.4%.
+  2. "At h=1, LASSO R²_OOS = −1.06% and GR = −1.80% (PM RMSE 4.403); the least negative estimates are post-LASSO at h=3 (−0.38%) and h=12 (−0.52%)."
+  3. "Worst h=1 estimates: PLS −5.30%, Random Forest −15.49%."
+  4. "h=1 hit rates 53.5–59.7% vs PM 59.9%; across horizons they are close to, not uniformly below, the benchmark."
+  5. "One-sided DM/CW tests do not show significant improvement over the benchmark."
+- **Display numbers:** **−1.06%** (accent, large) · 4.403 · 59.9% · −15.49%.
 - **Speaker notes:** "Sasi (1:15): negative results are results — correct execution matters more than a positive sign. Walk through the bar chart."
 
-### Slide 7 — Result 2: economic value (speaker: Sasi, 1:15, FIGURE)
-- **Title:** "Result 2: forecasts still have economic value — drawdown control"
+### Slide 7 — Economic strategy results (speaker: Sasi, 1:15, FIGURE)
+- **Title:** "Economic strategies: negative h=1 utility gains"
 - **Figure:** `output/figures/figure1_wealth.png` — LEFT, x=0.6, width=7.2 in.
   - **Caption:** "Cumulative wealth per $1 of the binary switching strategy (best model per horizon), the prevailing mean, and buy-and-hold, net of 10 bps costs."
 - **Bullets (RIGHT, x=8.0, width=4.9 in):**
-  1. "Switching (post-LASSO, 10 bps): max drawdown −23.4% vs buy-and-hold −50.2%; Sharpe 0.767 vs 0.777."
-  2. "Terminal wealth $67.7 vs $346.5 — dodging bear markets costs upside in a bull-dominated sample."
-  3. "Mean–variance investor (γ=3): ΔU = +1.31% p.a. (post-LASSO), +1.22% (LASSO), +1.06% (GR), +0.73% (equal) — net of costs."
-  4. "Fee sensitivity at 5/20 bps reported in the paper."
-- **Display numbers:** **−50% → −23%** (accent) · **+1.31% p.a.** · 0.767 / 0.777.
-- **Speaker notes:** "Sasi (1:15): Sharpe vs wealth trade-off; ΔU interpretation; fee sensitivity 5/20 bps in the report."
+  1. "Switching (LASSO, 10 bps): max drawdown −44.4% vs buy-and-hold −50.2%; Sharpe 0.767 vs 0.776; terminal wealth $232.7 vs $341.9."
+  2. "At h=1 and 10 bps net, mean–variance ΔU: LASSO −0.39%, post-LASSO −2.07%, GR −0.99% p.a."
+  3. "These are sample estimates, not evidence of a statistically significant utility difference."
+  4. "Fee sensitivity at 5/20 bps is reported in the paper."
+- **Speaker notes:** "Sasi (1:15): distinguish terminal wealth, drawdown and mean-variance utility; avoid claiming an economic gain."
 
-### Slide 8 — Why predictability decayed (speaker: Vienna, 1:00, FIGURE)
-- **Title:** "Why did predictability decay?"
+### Slide 8 — Subperiod comparisons (speaker: Vienna, 1:00, FIGURE)
+- **Title:** "How do results vary across subperiods?"
 - **Figure:** `output/figures/figure4_subperiods.png` — LEFT, x=0.6, width=6.2 in.
-  - **Caption:** "LASSO out-of-sample R² by subperiod (h = 1) — closest to the prevailing mean exactly in the 2000–2011 crisis decade."
+  - **Caption:** "LASSO out-of-sample R² by subperiod (h = 1); negative values indicate lower accuracy than the prevailing mean."
 - **Bullets (RIGHT, x=7.0, width=5.9 in):**
-  1. "Recession months drive the signal value: volume/MA rules earn their R² in a handful of crisis months (2000–02, 2008–09)."
-  2. "Subperiods (LASSO, h=1): −10.5% (1971–99) → −1.2% (2000–11) → −13.4% (2012–25)."
-  3. "GR combination: −10.9% → −1.9% → −17.5%."
-  4. "Post-2011: fewer deep drawdowns, a passive-dominated market, and faster arbitrage of published signals."
-  5. "Macro-only LASSO is closest to the benchmark (−0.9%) — joint fits dilute the signal."
-- **Display numbers:** **−1.2%** (accent, the crisis-decade dip) · −10.5 / −13.4.
-- **Speaker notes:** "Vienna (1:00): economic interpretation, connect to the literature."
+  1. "Subperiod R² comparisons are descriptive; they do not show that recessions cause changes in forecast performance."
+  2. "This design does not test explanations involving passive flows or arbitrage speed."
+  3. "The corrected Neely replication does not find 5% significance for the selected volume signals."
+  4. "Macro-only and technical-only predictor-set comparisons are reported in the appendix."
+- **Speaker notes:** "Vienna (1:00): describe subperiod comparisons without presenting them as causal evidence."
 
 ### Slide 9 — Conclusion (speaker: Vienna, 0:45, no figure)
 - **Title:** "Conclusion"
 - **Bullets (verbatim):**
-  1. "We reproduce Neely et al. (2014) faithfully (99.98% signal match; positive VOL-signal R²_OOS on 1966–2011)."
-  2. "Extended to 2025, no model — regularized, tree-based, or combined — beats the prevailing mean on RMSE/MAE or direction."
-  3. "Economic value persists: switching halves the max drawdown (−50% → −23%); MV gains of +1.2–1.3% p.a. net of costs."
-  4. "Lesson: honest evaluation, disciplined windows and costs matter more than model complexity."
+  1. "We match Neely et al.'s published signals in 99.98% of signal-months; three focal VOL estimates are positive, but none of the six volume rules is significant at 5% on 1966–2011."
+  2. "Extended to 2025, all model R² estimates are negative; one-sided tests show no significant accuracy improvement, and hit rates are close to but not uniformly below the benchmark."
+  3. "At h=1 and 10 bps net, mean-variance ΔU is −0.39% p.a. for LASSO and −2.07% for post-LASSO. LASSO switching has lower terminal wealth and modestly smaller maximum drawdown than buy-and-hold."
+  4. "The corrected results do not support claiming forecast-based improvements in point accuracy or mean-variance utility."
 - **Design:** three numbered findings; final line in accent.
 - **Speaker notes:** "Vienna (0:45): wrap-up, hand over to Q&A."
 
@@ -231,22 +230,22 @@ elements.
 | Sample size | 899 months (1951-02 → 2025-12) | `data/processed/panel.csv` |
 | Predictors | 98 = 84 macro-lag + 14 technical | `data/processed/codebook.csv` |
 | Signal replication match | 99.9805% (2 of 10,262 signal-months differ) | `output/tables/signal_validation.csv` |
-| OOS months | h=1: 659 · h=3: 657 · h=12: 648 | `output/tables/table2_h{1,3,12}.csv` row counts |
-| PM RMSE (h=1) | 4.399 | `table2_h1.csv` (RMSE_pm) |
-| LASSO R²_OOS | h=1 −8.8% · h=3 −8.2% · h=12 −11.5% | `table2_h{1,3,12}.csv` (R2_OOS_pct) |
-| GR R²_OOS (h=1) | −10.0% | `table2_h1.csv` |
-| PLS / RF R²_OOS (h=1) | −40.6% / −48.4% | `table2_h1.csv` |
-| Hit rates | models 53–58% · PM 60% | `table2_h*.csv` (HR, HR_pm) |
-| Neely replication 1966–2011 | VOL(2,9) +0.36% (p 0.017) · VOL(2,12) +0.66% (p 0.015) · VOL(3,12) +0.76% (p 0.029) | `table5_neely_replication.csv` |
+| OOS months | h=1: 658 · h=3: 654 · h=12: 636 | forecast CSV row counts |
+| PM RMSE (h=1) | 4.403 | `table2_h1.csv` (RMSE_pm) |
+| LASSO R²_OOS | h=1 −1.06% · h=3 −0.97% · h=12 −1.25% | `table2_h{1,3,12}.csv` (R2_OOS_pct) |
+| Best model R²_OOS | h=1 LASSO −1.06% · h=3 post-LASSO −0.38% · h=12 post-LASSO −0.52% | `table2_h{1,3,12}.csv` |
+| GR R²_OOS (h=1) | −1.80% | `table2_h1.csv` |
+| PLS / RF R²_OOS (h=1) | −5.30% / −15.49% | `table2_h1.csv` |
+| Hit rates | h=1 models 53.5–59.7%, PM 59.9%; across horizons 53.5–60.1%, PM 59.7–59.9% | `table2_h*.csv` (HR, HR_pm) |
+| One-sided test p-values | minimum DM RMSE p=0.677; minimum CW p=0.105 | `table2_h*.csv` |
+| Neely replication 1966–2011 | VOL(2,9) +0.19% (p 0.193) · VOL(2,12) +0.11% (p 0.247) · VOL(3,12) +0.53% (p 0.077) | `table5_neely_replication.csv` |
 | Published VOL(2,12) | +0.33% | Neely et al. (2014) Table II |
-| Extension 2012–2025 | all negative; VOL(3,12) −1.28% (p 0.429) | `table5_neely_replication.csv` |
-| Drawdown | BH −50.2% → post-LASSO −23.4% | `table3_h1.csv` (sw_maxdd_10bps) |
-| Terminal wealth | post-LASSO $67.7 · BH $346.5 | `table3_h1.csv` (sw_wealth_10bps) |
-| Switching Sharpe | post-LASSO 0.767 · BH 0.777 | `table3_h1.csv` (sw_sharpe_10bps) |
-| MV ΔU (10 bps) | post-LASSO +1.31% · LASSO +1.22% · GR +1.06% · equal +0.73% p.a. | `table3_h1.csv` (mv_deltaU_10bps_pct) |
-| Subperiods LASSO (h=1) | 1971–99 −10.5% · 2000–11 −1.2% · 2012–25 −13.4% | recompute from `forecasts_h1.csv` + `panel.csv` |
-| Subperiods GR (h=1) | −10.9% · −1.9% · −17.5% | same |
-| Macro-only LASSO (h=1) | −0.9% | `forecasts_h1_macro.csv` (Appendix A1) |
+| Extension 2012–2025 | selected VOL estimates negative and insignificant; VOL(3,12) −0.31% (p 0.442) | `table5_neely_replication.csv` |
+| LASSO switching (h=1, 10 bps) | wealth $232.7 vs BH $341.9; max drawdown −44.4% vs −50.2% | `table3_h1.csv` |
+| Switching Sharpe | LASSO 0.767 · BH 0.776 | `table3_h1.csv` (sw_sharpe_10bps) |
+| MV ΔU (h=1, 10 bps) | post-LASSO −2.07% · LASSO −0.39% · GR −0.99% · equal −0.76% p.a. | `table3_h1.csv` (mv_deltaU_10bps_pct) |
+| Subperiods LASSO (h=1) | 1971–99 −0.6% · 2000–11 −1.2% · 2012–25 −1.9% | recompute from `forecasts_h1.csv` + `panel.csv` |
+| Macro-only LASSO (h=1) | −1.03% | `forecasts_h1_macro.csv` (Appendix A1) |
 | GWZ 2024 citation | "A Comprehensive 2022 Look…", RFS 37(11), DOI 10.1093/rfs/hhae044 | `report/main.tex` bibliography |
 
 ## 7. Figures (paths, sizes, captions)
@@ -255,7 +254,7 @@ elements.
 |---|---|---|---|---|
 | fig2 | `output/figures/figure2_r2oos.png` | 6 | w 6.4 in | "Out-of-sample R² (%) versus the prevailing mean by model and horizon. Negative values indicate lower accuracy than the benchmark." |
 | fig1 | `output/figures/figure1_wealth.png` | 7 | w 7.2 in | "Cumulative wealth per $1 of the binary switching strategy (best model per horizon), the prevailing mean, and buy-and-hold, net of 10 bps costs." |
-| fig4 | `output/figures/figure4_subperiods.png` | 8 | w 6.2 in | "LASSO out-of-sample R² by subperiod (h = 1) — closest to the prevailing mean exactly in the 2000–2011 crisis decade." |
+| fig4 | `output/figures/figure4_subperiods.png` | 8 | w 6.2 in | "LASSO out-of-sample R² by subperiod (h = 1); negative values indicate lower accuracy than the prevailing mean." |
 
 Figures are 300 dpi PNGs (e.g., 2100×1800, 3000×1260, 1800×1080); keep
 aspect ratio (do not distort). If you regenerate them: `Rscript R/13_figures.R`.

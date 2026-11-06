@@ -3,7 +3,7 @@
 % "Forecasting the Equity Risk Premium Out-of-Sample: Regularized Machine
 %  Learning, Technical Indicators & Tactical Asset Allocation"
 % Format: <= 15 pages, 11pt, 1.5 line spacing (Prof. Denis's requirements)
-% Build:  latexmk -pdf report/main.tex
+% Build from report/: tectonic -r 2 main.tex
 % =============================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -43,19 +43,24 @@ squares (LASSO and post-LASSO), Ridge, Elastic Net, principal components and
 partial least squares regressions, and random forests, together with equal-weight
 and constrained Granger--Ramanathan forecast combinations, at horizons
 $h\in\{1,3,12\}$. Statistical accuracy is assessed with the Diebold--Mariano
-(1995) test on squared and absolute errors (Clark--West as an appendix check),
+(1995) test on squared and absolute errors,
 and economic value with a binary switching strategy and a mean--variance
-investor, both net of transaction costs. We reproduce the original study
-faithfully---our computed technical signals match the published series in
-99.98\% of signal-months, and on the 1966--2011 sample the volume-based
-signals are again significantly predictive. On the extended sample, however,
+investor, both net of transaction costs. Our expanding-window comparison
+uses 178 correctly timed predictor--target pairs before the January 1966
+forecast, versus the 181-month initial window in the original study. Our
+computed technical signals match the published series in 99.98\% of
+signal-months. On the 1966--2011 sample, the three focal volume-rule
+estimates are positive, but none of the six volume rules is significant at
+5\%. On the extended sample, however,
 no model beats the prevailing mean at any horizon: out-of-sample $R^2$ ranges
-from $-8.2\%$ to $-50.3\%$, and hit rates fall short of the benchmark.
-Economic value persists nevertheless: switching strategies halve the maximum
-drawdown of buy-and-hold at market-level Sharpe ratios, and a mean--variance
-investor earns certainty-equivalent gains of $1.2$--$1.3\%$ per annum net of
-costs. We conclude that technical-signal predictability is real but
-episodic, concentrated in crisis periods, and largely absent after 2011.
+from $-15.49\%$ to $-0.38\%$, while hit rates are close to the benchmark.
+At $h=1$, the LASSO switching strategy has lower terminal wealth and only
+modestly smaller maximum drawdown than buy-and-hold, while mean--variance
+utility differences are negative for all forecast models. At $h=1$ and
+10 bps net, $\Delta U$ is $-0.39\%$ p.a. for LASSO and $-2.07\%$ for
+post-LASSO. The corrected
+results provide no evidence that these forecasts improve on the prevailing
+mean in point-forecast accuracy or mean--variance utility.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -77,21 +82,23 @@ the prevailing historical mean on the extended 1951--2025 sample? We follow
 a disciplined protocol: a fixed 240-month rolling window, a strict
 no-lookahead alignment convention, the prevailing mean as the only benchmark,
 Diebold--Mariano (1995) tests with HAC inference, and economic evaluation net
-of transaction costs. To establish credibility, we first reproduce the
-original study: our computed technical signals match the published series in
-99.98\% of signal-months, and on the 1966--2011 sample the volume-based
-signals are again significantly predictive (out-of-sample $R^2$ of up to
-0.76\%).
+of transaction costs. To validate the data, we match the published technical
+signals in 99.98\% of signal-months, then use a time-aligned expanding-window
+bivariate design on the 1966--2011 sample. Its correctly timed predictor--
+target pairs provide 178 initial observations, compared with 181 months in
+the original design.
 
 Three findings emerge. First, on the extended sample no model---LASSO,
 post-LASSO, Ridge, Elastic Net, PCR, PLS, random forest, or forecast
 combinations---beats the prevailing mean at any horizon; out-of-sample $R^2$
-ranges from $-8.2\%$ to $-50.3\%$. Second, the technical-signal
-predictability is real but transient: it is present on the 1966--2011 sample
-and absent after 2012. Third, the forecasts retain economic value: a binary
-switching strategy halves the maximum drawdown of buy-and-hold (from $-50\%$
-to about $-23\%$), and a mean--variance investor earns certainty-equivalent
-gains of 1.2--1.3\% per annum net of transaction costs. The remainder of the
+ranges from $-15.49\%$ to $-0.38\%$. Second, the three focal volume-rule
+estimates are positive but do not reach 5\% significance on the 1966--2011
+sample, and none of the six volume rules is significant at that level; the
+three focal estimates are negative on the extension. Third, at $h=1$ the
+LASSO switching strategy has lower terminal wealth than buy-and-hold and a
+modestly smaller maximum drawdown, while forecast-based mean--variance
+utility differences are negative. At $h=1$ and 10 bps net, $\Delta U$ is
+$-0.39\%$ p.a. for LASSO and $-2.07\%$ for post-LASSO. The remainder of the
 paper describes the data (Section~\ref{sec:data}), the methods
 (Section~\ref{sec:method}), the results (Section~\ref{sec:results}) and
 concludes in Section~\ref{sec:conclusion}.
@@ -144,9 +151,11 @@ Dickey--Fuller (BIC lag selection, intercept and trend) tests.
 
 \subsection{Rolling-window forecasting design}\label{sec:method:design}
 All models are estimated on a fixed 240-month (20-year) rolling window and
-produce an $h$-month-ahead forecast of the premium, $h\in\{1,3,12\}$. The
-first out-of-sample forecast targets February 1971, leaving 659 out-of-sample
-months at $h=1$. The benchmark is the prevailing (historical) mean premium
+produce an $h$-month-ahead forecast of the premium, $h\in\{1,3,12\}$. A
+training observation pairs predictors $X_s$, observable at the end of month
+$s$, with the premium earned in month $s+h$. At forecast origin $t$, training
+pairs are restricted to outcomes observed by $t$; the window contains 240
+valid pairs. The benchmark is the prevailing (historical) mean premium
 computed through the forecast origin, the only admissible benchmark for this
 exercise: OLS benchmark forecasts fail out-of-sample and are not used.
 
@@ -171,7 +180,17 @@ random forest (500 trees, $m_{\mathrm{try}}=p/3$, minimum node size 5, fixed
 seed, single-threaded for exact reproducibility). All models use the same
 $98$-predictor matrix (84 macro-lag columns plus 14 technical signals); the
 expanded Goyal--Welch--Zafirov (2024) predictors are held out as a
-robustness variant.
+robustness variant. That variant adds only the eight expanded variables that
+are observed monthly throughout 1951:02--2025:12 and are not constructed
+with full-sample information (skvw, tail, rdsp, avgcor, dtoy, dtoat, wtexas,
+lzrt), each with six lags, giving 146 predictors. We exclude fbm, ogap, sntm,
+tchi and shtint because the data documentation describes them as full-sample
+constructions, so lagging them would not remove look-ahead bias; twelve
+further variables (e.g.\ cay, pce, eqis) are not available monthly; and csp,
+vp, impvar, vrp, ndrbl, ygap, rsvix and disag start after or end before our
+sample, so including them would shorten the common sample. The expanded
+variant is therefore a partial, not exhaustive, use of the Goyal et al.\
+(2024) predictor set.
 
 \subsection{Forecast combinations}\label{sec:method:combos}
 We combine the seven model forecasts with (i) the simple equal-weight average
@@ -186,39 +205,46 @@ Statistical accuracy is measured by out-of-sample RMSE and MAE and the
 Campbell--Thompson (2008) $R^2_{\mathrm{OOS}} = 1 - \sum e_t^2 / \sum
 e_{t,\mathrm{PM}}^2$ against the prevailing mean. Significance is tested with
 the Diebold--Mariano (1995) statistic on squared and absolute error
-differentials, with Newey--West long-run variance (lag $h-1$); the
-Clark--West (2007) adjusted-MSPE test is reported in the appendix for the
-nested comparison against the benchmark. Economic value is assessed with two
+differentials, with Newey--West long-run variance (lag $h-1$). Following the
+course, we use the Diebold--Mariano test only and do not report the
+Clark--West (2007) nested-model test. Economic value is assessed with two
 strategies net of transaction costs (baseline 10 bps, sensitivity 5 and
-20 bps): (i) a binary switching strategy that holds the S\&P 500 when the
+20 bps). Each switch, including the initial equity purchase, is charged this
+cost. We assume the investor trades an S\&P 500 ETF and Treasury bills; major
+US brokers now charge zero online commission on both (e.g.\ Charles Schwab,
+2026), and a one-cent quoted spread on a liquid S\&P 500 ETF priced in the
+hundreds of dollars is well below 1 bp. The 10 bps baseline is therefore a
+conservative all-in cost covering spread, slippage and price impact, and the
+20 bps case reflects the higher trading costs of earlier decades: (i) a binary switching strategy that holds the S\&P 500 when the
 $h$-month-ahead premium forecast is positive and three-month Treasury bills
 otherwise, reporting terminal wealth, annualized Sharpe ratio, maximum
 drawdown, and turnover; and (ii) a mean--variance investor with risk aversion
 $\gamma=3$ who allocates $w_t = (1/\gamma)\,\hat y_t / \hat\sigma^2_t$ to
 equities, clamped to $[0,1.5]$, where $\hat\sigma^2_t$ is realized variance
-over the previous 60 months; the certainty-equivalent return gain
+over the previous 60 months, measured using information available at the
+forecast origin; the certainty-equivalent return gain
 $\Delta U$ relative to the benchmark allocation is reported.
 
 \section{Results}\label{sec:results}
 
 \subsection{Statistical accuracy}\label{sec:results:accuracy}
 Table~\ref{tab:table2} reports out-of-sample RMSE, MAE, $R^2_{\mathrm{OOS}}$,
-hit rate, and the Diebold--Mariano and Clark--West $p$-values of every model
+hit rate, and the Diebold--Mariano $p$-values of every model
 against the prevailing mean at each horizon, and
 Figure~\ref{fig:r2oos} visualizes the $R^2_{\mathrm{OOS}}$ profile. The
 central result is unambiguous: \emph{no model beats the prevailing mean}.
-At $h=1$ the benchmark RMSE is 4.399; the best-performing model, LASSO,
-posts $R^2_{\mathrm{OOS}} = -8.8\%$ and the constrained Granger--Ramanathan
-combination $-10.0\%$; random forests and PLS are worse by 40--48\%.
-The ranking is stable across horizons ($h=3$: $-8.2\%$ for LASSO; $h=12$:
-$-11.5\%$), and the Diebold--Mariano tests reject equal accuracy in the
-opposite direction---the models are significantly \emph{worse} than the
-historical mean on squared errors. Direction-of-change tells the same story:
-hit rates of 53--58\% fall short of the benchmark's 60\%, which simply bets
-on a positive premium every month. The joint multivariate fits (98
-predictors) and the technical-only variants (Appendix~\ref{app:variants}) are both
-negative, consistent with Goyal and Welch's (2008, 2024) conclusion that the
-premium is extraordinarily hard to predict in real time.
+All nine forecast models have negative out-of-sample $R^2$ at each horizon.
+At $h=1$, the prevailing-mean RMSE is 4.403; LASSO has the least negative
+$R^2_{\mathrm{OOS}}$ ($-1.06\%$), while random forest has the most negative
+($-15.49\%$). Post-LASSO is closest to the benchmark at $h=3$ ($-0.38\%$)
+and $h=12$ ($-0.52\%$). Across all horizons, the one-sided Diebold--Mariano
+tests find no statistically significant evidence that a model improves on
+the benchmark (minimum one-sided $p=0.677$). This
+does not support the previous claim that models are significantly worse.
+Hit rates range from 53.5\% to 60.1\%, compared with prevailing-mean rates
+of 59.7\% to 59.9\%; thus, the direction metric is close to the benchmark
+and is not uniformly lower. The full, technical-only and macro-only
+predictor-set results are negative as well (Appendix~\ref{app:variants}).
 
 \begin{figure}[htbp]
 \centering
@@ -231,21 +257,16 @@ horizon. Negative values indicate lower accuracy than the benchmark.}
 \input{../output/tables/table2_tex.tex}
 
 \subsection{Replicating Neely et al.\ (2014)}\label{sec:results:neely}
-A negative result is only informative if the machinery that produced it can
-find predictability when predictability exists. We therefore re-run the
-original design of Neely et al.\ (2014)---expanding-window bivariate
+To examine the individual technical signals, we estimate the expanding-window bivariate
 predictive regressions of the one-month-ahead premium on one technical
 signal at a time---on their 1966--2011 evaluation sample and on the
-2012--2025 extension (Table~\ref{tab:table5}). The replication succeeds: the
-three on-balance-volume signals VOL(2,9), VOL(2,12) and VOL(3,12) produce
-positive, statistically significant $R^2_{\mathrm{OOS}}$ of 0.36\%, 0.66\%
-and 0.76\% (Clark--West $p$-values 0.017, 0.015 and 0.029), of the same sign,
-significance and order of magnitude as the published results (VOL(2,12):
-$+0.33\%$). On the 2012--2025 extension every signal turns negative and none
-is significant. The technical-signal content documented by Neely et al.\ is
-therefore real, but it does not survive the sample extension---the central
-explanation for why the multivariate models in
-Section~\ref{sec:results:accuracy} fail against the prevailing mean.
+2012--2025 extension (Table~\ref{tab:table5}). With predictor signals dated before the return they forecast, the three
+focal on-balance-volume estimates are VOL(2,9) $+0.19\%$ (one-sided
+Diebold--Mariano $p=0.339$), VOL(2,12) $+0.11\%$ ($p=0.403$), and VOL(3,12)
+$+0.53\%$ ($p=0.196$).
+None of these three focal estimates is significant at 5\%; none of the six
+volume rules is significant at that level either. On the 2012--2025 extension,
+the three focal estimates are negative and none is significant.
 
 \begin{table}[htbp]
 \centering
@@ -257,23 +278,23 @@ prevailing mean.}
 \begin{threeparttable}
 \begin{tabular}{llrrr}
 \toprule
-Sample & Signal & $n$ & $R^2_{OOS}$ (\%) & CW $p$-value \\
+Sample & Signal & $n$ & $R^2_{OOS}$ (\%) & DM $p$-value \\
 \midrule
 \multicolumn{5}{l}{\emph{Panel A: 1966--2011 (Neely et al.\ sample)}} \\
- & VOL(2,9)  & 552 & 0.36 & 0.017 \\
- & VOL(2,12) & 552 & 0.66 & 0.015 \\
- & VOL(3,12) & 552 & 0.76 & 0.029 \\
- & MA(2,12)  & 552 & -0.32 & 0.033 \\
+ & VOL(2,9)  & 552 & 0.19 & 0.339 \\
+ & VOL(2,12) & 552 & 0.11 & 0.403 \\
+ & VOL(3,12) & 552 & 0.53 & 0.196 \\
+ & MA(2,12)  & 552 & 0.57 & 0.248 \\
 \multicolumn{5}{l}{\emph{Panel B: 2012--2025 (extension)}} \\
- & VOL(2,9)  & 168 & -6.92 & 0.892 \\
- & VOL(2,12) & 168 & -4.67 & 0.702 \\
- & VOL(3,12) & 168 & -1.28 & 0.429 \\
- & MA(2,12)  & 168 & -4.57 & 0.620 \\
+ & VOL(2,9)  & 168 & -1.51 & 0.952 \\
+ & VOL(2,12) & 168 & -0.95 & 0.835 \\
+ & VOL(3,12) & 168 & -0.31 & 0.603 \\
+ & MA(2,12)  & 168 & -1.09 & 0.776 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
 \footnotesize
-\item Expanding estimation window (initial 179 months); Clark--West (2007) one-sided $p$-value against the prevailing mean. Full results for all 14 signals in \texttt{output/tables/table5\_neely\_replication.csv}.
+\item Expanding estimation window with 178 correctly timed predictor--target pairs before the January 1966 forecast; one-sided Diebold--Mariano $p$-value (squared-error loss) against the prevailing mean. Complete results for all 14 signals are in \texttt{output/tables/table5\_neely\_replication.csv}; the signal-series comparison with the published series is in \texttt{output/tables/signal\_validation.csv}. Estimates are our own time-aligned regressions, not values taken from the published study.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -281,20 +302,17 @@ Sample & Signal & $n$ & $R^2_{OOS}$ (\%) & CW $p$-value \\
 \subsection{Economic evaluation}\label{sec:results:econ}
 Table~\ref{tab:table3} reports the two economic strategies net of transaction
 costs, and Figure~\ref{fig:wealth} plots the switching-strategy wealth paths.
-The binary switching strategies do not beat buy-and-hold in terminal wealth:
-the post-LASSO-driven strategy ends the $h=1$ sample with \$67.7 per dollar
-invested versus \$346.5 for buy-and-hold, largely because switching to
-T-bills forgoes the equity premium in a sample dominated by bull markets.
-They do, however, deliver the risk-management payoff the literature has
-documented: the maximum drawdown falls from $-50.2\%$ (buy-and-hold) to
-$-23.4\%$ (post-LASSO) with a Sharpe ratio (0.767) essentially equal to the
-market's (0.777). The mean--variance investor extracts small but positive
-certainty-equivalent gains from the forecasts: $\Delta U$ of $+1.31\%$ p.a.
-(post-LASSO), $+1.22\%$ p.a. (LASSO), $+1.06\%$ p.a. (Granger--Ramanathan)
-and $+0.73\%$ p.a. (equal-weight combination) at the 10 bps baseline, with
-the ranking preserved at 5 and 20 bps. The forecasts therefore earn their
-keep as risk-management and allocation signals even though they lose on
-point-forecast accuracy.
+At $h=1$, the LASSO-driven switching strategy ends with \$232.7 per dollar
+invested versus \$341.9 for buy-and-hold; its maximum drawdown is $-44.4\%$
+versus $-50.2\%$, and its annualized Sharpe ratio is 0.767 versus 0.776.
+These sample outcomes show lower terminal wealth and only a modestly smaller
+drawdown for this specification. The mean--variance utility differences
+relative to the prevailing-mean allocation are negative for every forecast
+model at $h=1$ and at the reported fee levels. For example, at $h=1$ and
+10 bps net of transaction costs, $\Delta U$ is $-0.39\%$ p.a. for LASSO,
+$-2.07\%$ for post-LASSO, and $-0.99\%$ for the Granger--Ramanathan
+combination. The results therefore do not support a claim of positive
+mean--variance utility gains.
 
 \begin{figure}[htbp]
 \centering
@@ -307,34 +325,29 @@ and buy-and-hold, net of 10 bps transaction costs.}
 
 \input{../output/tables/table3_tex.tex}
 
-\subsection{Why does predictability decay?}\label{sec:results:discussion}
-Three observations help reconcile our results with Neely et al.\ (2014).
-First, the value of the technical signals is concentrated in a small number
-of crisis months: the recessionary episodes of 2000--2002 and 2008--2009
-account for most of the 1966--2011 out-of-sample gain of the volume rules,
-and the 2012--2025 period contains no comparable drawdown episode, which
-mechanically deflates $R^2_{\mathrm{OOS}}$. Direct evidence comes from
-splitting the $h=1$ out-of-sample period for the main models: LASSO's
-$R^2_{\mathrm{OOS}}$ is $-10.5\%$ in 1971--1999, improves to $-1.2\%$ in
-2000--2011---the decade containing both crisis episodes---and deteriorates
-to $-13.4\%$ in 2012--2025; the Granger--Ramanathan combination traces the
-same pattern ($-10.9\%$, $-1.9\%$, $-17.5\%$). Second, the post-2011 period
-is characterized by passive, momentum-dominated flows and rapid arbitrage of
-published signals, both of which erode return predictability. Third, the
-joint multivariate fits estimated under $\ell_1$/$\ell_2$ penalties shrink
-toward zero and end up overfitting relative to the deliberately simple
-bivariate design; the Granger--Ramanathan combination, which adapts to past
-out-of-sample performance (Figure~\ref{fig:grweights}), is the closest to the
-benchmark precisely because it learns to place most weight on the shrinkage
-forecasts. Consistent with this reading, restricting the predictor matrix to
-the 84 macro-lag columns improves the joint fit materially (LASSO
-$R^2_{\mathrm{OOS}} = -0.9\%$ at $h=1$, versus $-8.8\%$ on the full set),
-while the technical-only variant is also negative (Appendix~\ref{app:variants}):
-in the multivariate setting the technical signals dilute rather than sharpen
-the fit. Taken
-together, our evidence is consistent with Goyal, Welch and
-Zafirov (2024): the equity premium remains very hard to predict
-out-of-sample, and any predictability is episodic rather than structural.
+\subsection{Interpreting the sample comparisons}\label{sec:results:discussion}
+Subperiod and predictor-set comparisons are descriptive and do not identify
+why forecast performance differs. In particular, they cannot establish that
+crisis months caused predictability, or that passive flows and faster
+arbitrage explain any change over time. The corrected bivariate estimates
+do not reproduce 5\% significance for the three focal volume signals on the
+1966--2011 sample; the extension therefore does not establish that
+previously reported predictability subsequently decayed. The macro-only and
+technical-only comparisons in Appendix~\ref{app:variants} report
+out-of-sample performance for those predictor sets; they do not establish
+causal mechanisms. Figure~\ref{fig:subperiods} and
+Table~\ref{tab:subperiods} report the underlying descriptive h=1 LASSO
+subperiod estimates.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{../output/figures/figure4_subperiods.png}
+\caption{LASSO out-of-sample $R^2$ by subperiod at $h=1$. Values are
+descriptive comparisons against the prevailing mean within each subperiod.}
+\label{fig:subperiods}
+\end{figure}
+
+\input{../output/tables/table_subperiods_h1_tex.tex}
 
 \begin{figure}[htbp]
 \centering
@@ -345,18 +358,23 @@ out-of-sample forecast errors with $\sum_i w_i=1$, $w_i\ge0$.}
 \end{figure}
 
 \section{Conclusion}\label{sec:conclusion}
-We replicate and extend Neely et al.\ (2014) on a 1951--2025 sample with a
-fixed 240-month rolling design, seven regularized machine learning models and
-two forecast combinations. The replication validates our pipeline: the
-computed technical signals match the published series in 99.98\% of months,
-and the volume-based signals are again significantly predictive on the
-original 1966--2011 evaluation period. On the extended sample, however, no
-model beats the prevailing historical mean at any horizon---the premium
-predictability documented a decade ago has decayed in the post-2011 data.
-The forecasts nonetheless retain economic value: switching strategies halve
-the maximum drawdown at market-level Sharpe ratios, and a mean--variance
-investor gains 1.2--1.3\% per annum in certainty-equivalent terms net of
-transaction costs.
+We apply a correctly time-aligned expanding-window bivariate design to the
+Neely et al.\ (2014) sample, with 178 paired observations available before
+the January 1966 forecast, and extend the analysis to 2025 with seven regularized
+machine learning models and two forecast combinations. Our computed
+technical signals match the published series in 99.98\% of months. The
+three focal volume-rule estimates are positive but not significant at 5\%
+in the original 1966--2011 evaluation period; none of the six volume rules
+is significant at 5\%. On the extended sample, no
+model beats the prevailing historical mean at any horizon. Since the corrected
+analysis does not reproduce significance in the original period, these
+results do not establish whether previously reported predictability decayed
+after 2011.
+At $h=1$ and 10 bps net of transaction costs, mean--variance $\Delta U$ is
+$-0.39\%$ p.a. for LASSO and $-2.07\%$ for post-LASSO. The economic
+strategies are evaluated separately from point-forecast accuracy; the
+complete fee sensitivity results are reported in
+Section~\ref{sec:results:econ} and Table~\ref{tab:table3}.
 
 Our study has clear limitations. It covers a single market (the US) with
 monthly data; the rolling window length and lag structure are fixed rather
@@ -372,28 +390,12 @@ persistent failure of point forecasts documented here.
 Table~\ref{tab:tableA1} reports $R^2_{\mathrm{OOS}}$ at $h=1$ for three
 predictor sets: the full design (84 macro-lag columns plus 14 technical
 signals), the 14 technical signals alone, and the 84 macro-lag columns alone.
-The macro-only set is closest to the benchmark for the shrinkage estimators
-(LASSO $-0.9\%$), and the technical-only set is uniformly worse---in the
-joint multivariate fit the technical signals dilute rather than sharpen the
-forecasts, which is why the bivariate design of
-Section~\ref{sec:results:neely} remains the natural vehicle for their
-information.
+All nine reported $R^2_{\mathrm{OOS}}$ values are negative for each of the
+three predictor sets. These are descriptive comparisons; the bivariate
+regressions in Section~\ref{sec:results:neely} use one technical signal at a
+time and therefore estimate a different specification.
 
 \input{../output/tables/tableA1_tex.tex}
-
-\section{Clark--West appendix test}\label{app:cw}Because every model in this paper nests the prevailing mean (a regression on
-a constant only), we supplement the Diebold--Mariano tests of
-Table~\ref{tab:table2} with the Clark--West (2007) adjusted-MSPE test, which
-is designed for nested comparisons. The one-sided $p$-values, reported in
-Table~\ref{tab:table2} alongside the DM statistics, confirm the DM verdict:
-no model significantly improves on the benchmark at any horizon, and the
-replication exercise of Section~\ref{sec:results:neely} shows the test has
-power---it detects the positive 1966--2011 volume-signal predictability at
-the 5\% level. The test is implemented in base R with Newey--West
-long-run variance (lag $h-1$); the implementation is cross-checked against
-the published results of the original studies in
-\texttt{output/tables/signal\_validation.csv} and
-\texttt{output/tables/table5\_neely\_replication.csv}.
 
 \begin{thebibliography}{9}
 \bibitem{gw2008} Goyal, A., and I. Welch (2008). A comprehensive look at the
@@ -415,6 +417,8 @@ accuracy. \emph{Journal of Business \& Economic Statistics} 13(3), 253--263.
 \bibitem{cw2007} Clark, T. E., and K. D. West (2007). Approximately normal
 tests for equal predictive accuracy in nested models. \emph{Journal of
 Econometrics} 138(1), 291--311.
+\bibitem{schwab2026} Charles Schwab (2026). Pricing: trading fees and
+commissions. \url{https://www.schwab.com/pricing} (accessed 7 November 2026).
 \bibitem{gr1984} Granger, C. W. J., and R. Ramanathan (1984). Improved methods
 of combining forecasts. \emph{Journal of Forecasting} 3(2), 197--204.
 \end{thebibliography}

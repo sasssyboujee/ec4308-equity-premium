@@ -18,11 +18,17 @@ the methods, the results and what we learned."
 essentially no macroeconomic variable beats the historical average out of
 sample — and their 2024 update with an expanded dataset of 57 monthly
 series reaches the same verdict.
-Neely et al. found an exception: technical indicators, especially volume-based
-ones, did predict the premium from 1966 to 2011. Our question: once you feed
+Neely et al. reported an exception: technical indicators, especially
+volume-based ones, predicted the premium from 1966 to 2011. Our corrected
+time-aligned replication does not find 5-percent significance for any of the
+six volume rules. Our question: once you feed
 the macro variables and the technical signals through modern regularized ML,
-does anything beat the prevailing mean on data extended to 2025? We start by
-replicating Neely exactly, then extend. Leon will walk you through the data."
+does anything beat the prevailing mean on data extended to 2025? We use the
+same expanding-window design as Neely, then extend. Our technical signals
+match 99.98 percent of published signal-months. Correct predictor/target
+timing leaves 178 paired observations before the January 1966 forecast,
+compared with 181 months in the original design. Leon will walk you through
+the data."
 
 ---
 
@@ -37,7 +43,7 @@ months. The critical part is alignment: row t only contains information
 observable at the end of month t, so there is no lookahead. To validate the
 pipeline, we recomputed the signals from raw price and volume data: 99.98
 percent of signal-months match the published series exactly. The fixed
-240-month rolling window gives 659 out-of-sample months starting February
+240 valid predictor-target pairs give 658 out-of-sample months starting March
 1971. En Shao will cover the models."
 
 ---
@@ -61,54 +67,63 @@ results."
 
 ## Sasi — Slides 5–7 (3:45)
 
-**Slide 5 (1:15)** — "Before we show our headline results, here's our
-credibility check. We re-ran Neely et al.'s exact design — expanding-window
-bivariate regressions, one technical signal at a time — on their 1966 to 2011
-sample. The volume signals come out positive and significant: VOL-2-12 gives
-0.66 percent out-of-sample R-squared — same sign and significance as the
-published paper's 0.33 — and VOL-3-12 gives 0.76. So our pipeline finds
-predictability where the literature found it. But on the 2012 to 2025
-extension, every single signal turns negative and insignificant."
+**Slide 5 (1:15)** — "We re-estimated expanding-window bivariate regressions,
+one technical signal at a time, on the 1966 to 2011 sample. Aligning each
+signal with the following month's return leaves 178 correctly timed pairs
+before the January 1966 forecast. The selected volume-signal estimates are
+positive but not significant at 5%: VOL(2,9) is 0.19 percent (Clark-West
+p = 0.193), VOL(2,12) is 0.11 percent (p = 0.247), and VOL(3,12) is 0.53
+percent (p = 0.077). These are three focal signals; none of the six volume
+rules is significant at 5%. The three focal estimates are negative and not
+significant in the 2012 to 2025 extension. This timing correction changes
+the replication result, so we do not claim to recover the published
+significance."
 
-**Slide 6 (1:15)** — "Now the main results on the extended sample. Nothing
-beats the prevailing mean at any horizon. The best model, LASSO, has an
-out-of-sample R-squared of minus 8.8 percent at one month; the worst, random
-forest, minus 48. The ranking is stable across horizons, and the
-Diebold–Mariano tests say the models are significantly worse. Hit rates —
-the fraction of months with the right sign — are 54 to 58 percent versus 60
-for the benchmark, which just bets on positive every month. This is Goyal and
-Welch's result, reproduced with modern machine learning."
+**Slide 6 (1:15)** — "No model has positive out-of-sample R-squared against
+the prevailing mean at any horizon. The main ML evaluation targets run
+March 1971 to December 2025 at h=1, July 1971 to December 2025 at h=3, and
+January 1973 to December 2025 at h=12; this is distinct from the 2012–2025
+Neely replication extension. At one month, the benchmark RMSE is 4.403;
+LASSO has R-squared minus 1.06 percent, while random forest is minus
+15.49 percent. Post-LASSO is closest at three months, minus 0.38 percent,
+and twelve months, minus 0.52 percent. The one-sided Diebold–Mariano and
+Clark–West tests do not show significant improvement over the benchmark;
+they also do not show that the models are significantly worse. One-month
+hit rates range from 53.5 to 59.7 percent versus 59.9 percent for the
+benchmark."
 
-**Slide 7 (1:15)** — "Yet the forecasts still have economic value. The
-switching strategy — hold equities when the forecast is positive, T-bills
-otherwise — cuts the maximum drawdown from minus 50 percent to minus 23
-percent at a Sharpe ratio essentially equal to the market's. And the
-mean-variance investor earns certainty-equivalent gains of 1.2 to 1.3 percent
-per annum, net of transaction costs, with results stable at five and twenty
-basis points. The forecasts earn their keep as risk-management signals, not
-as point forecasts. Vienna will interpret."
+**Slide 7 (1:15)** — "The corrected one-month forecasts do not improve on the
+prevailing mean in RMSE, and the mean-variance utility differences are
+negative across models. At h=1 with 10 basis points in transaction costs,
+ΔU is minus 0.39 percent per year for LASSO and minus 2.07 percent for
+post-LASSO. For the LASSO-driven switching strategy, maximum
+drawdown is minus 44.4 percent versus minus 50.2 percent for buy-and-hold,
+but terminal wealth is lower: 232.7 dollars versus 341.9 dollars per dollar
+invested. These are sample outcomes, not evidence that the forecasts add
+economic value. Vienna will interpret."
 
 ---
 
 ## Vienna — Slides 8–10 (2:15)
 
-**Slide 8 (1:00)** — "Why did predictability decay? First, the technical
-signals earn their keep almost entirely in crisis months — 2000 to 2002 and
-2008 to 2009 — and the post-2011 sample simply lacks comparable episodes.
-Our subperiod split shows this directly: LASSO's out-of-sample R-squared is
-minus 10.5 percent in 1971 to 1999, improves to minus 1.2 percent in the
-crisis decade 2000 to 2011, then drops to minus 13.4 percent after 2012.
-Second, a market dominated by passive flows arbitrages published signals
-faster. Third, joint multivariate fits dilute the bivariate information: with
-only macro predictors, LASSO is much closer to the benchmark at minus 0.9
-percent. Our evidence lines up with Goyal, Welch and Zafirov 2024: any
-predictability is episodic, not structural."
+**Slide 8 (1:00)** — "The subperiod R-squared comparisons are descriptive:
+they do not show that recessions cause changes in forecast performance. Our
+design also does not test explanations involving passive flows or faster
+arbitrage. The corrected Neely replication does not find 5-percent
+significance for the selected volume signals. Macro-only and technical-only
+predictor-set comparisons are reported in the appendix; these comparisons
+should not be interpreted as causal evidence."
 
-**Slide 9 (0:45)** — "To conclude: we replicate Neely et al. faithfully — on
-their sample, the volume signals work. On the extended sample, no model beats
-the historical mean on accuracy, but the forecasts still deliver drawdown
-control and positive mean-variance gains. The lesson: honest evaluation,
-disciplined windows and transaction costs matter more than model complexity."
+**Slide 9 (0:45)** — "To conclude: after aligning predictors with the returns
+they precede, our three focal volume-signal estimates are positive but not
+significant at 5% on Neely et al.'s sample; none of the six volume rules is
+significant at that level. We have 178 initial pairs, rather
+than the original 181-month window. On the extended sample, no model beats
+the historical mean on point-forecast accuracy. The corrected h=1
+mean-variance utility differences are negative, and the LASSO switching
+strategy trades lower terminal wealth for a modestly smaller drawdown. The
+lesson: honest evaluation, disciplined windows and transaction costs matter
+more than model complexity."
 
 **Slide 10 (0:15)** — "Thank you — we're happy to take questions."
 

@@ -7,7 +7,7 @@
 #
 # Expected result (regenerated here, not hard-coded):
 #   12 of 14 signals match 100%; MOM_12 and VOL_2_9 match 99.9% (one month
-#   each, due to minor data revisions in the 1968 price and 1980 volume).
+#   each; the upstream cause is not established by this comparison).
 #
 # Output: output/tables/signal_validation.csv
 # Usage (repo root):  Rscript data/03_validate_signals.R
@@ -40,6 +40,7 @@ calc$date <- p$date
 
 pub <- read.csv(file.path(CONFIG$DATA_RAW, "neely_signals_published_1950_2011.csv"))
 pub$date <- as.Date(pub$date)
+stopifnot(!anyNA(pub$date), !anyDuplicated(pub$date))
 
 m <- merge(calc, pub[, setdiff(names(pub), "eq_prem")], by = "date",
            suffixes = c(".calc", ".pub"))
@@ -51,6 +52,7 @@ for (i in seq_along(CONFIG$TECHNICAL_NAMES)) {
   s <- CONFIG$TECHNICAL_NAMES[i]
   a <- m[[paste0(s, ".calc")]]; b <- m[[paste0(s, ".pub")]]
   ok <- !is.na(a) & !is.na(b)
+  stopifnot(sum(ok) > 0L, all(a[ok] %in% 0:1), all(b[ok] %in% 0:1))
   mm <- sum(ok & a != b)
   fd <- m$date[ok & a != b][1]
   res$months_compared[i] <- sum(ok)

@@ -1,5 +1,5 @@
 "column","group","variable","lag","definition","alignment"
-"eq_prem","target","eq_prem",0,"100*(ret - Rfree): log S&P 500 total return minus log risk-free, in percent","earned in month t"
+"eq_prem","target","eq_prem",0,"100*(ret - Rfree): simple monthly total equity return minus realized risk-free return, in percentage points","earned in month t"
 "dp_lag1","macro","d/p",1,"raw GWZ column 'd/p' shifted: x_lag1[t] = x[t-1]","observable at end of month t"
 "dp_lag2","macro","d/p",2,"raw GWZ column 'd/p' shifted: x_lag2[t] = x[t-2]","observable at end of month t"
 "dp_lag3","macro","d/p",3,"raw GWZ column 'd/p' shifted: x_lag3[t] = x[t-3]","observable at end of month t"

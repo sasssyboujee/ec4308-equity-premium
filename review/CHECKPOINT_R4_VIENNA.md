@@ -1,31 +1,53 @@
 # Review Checkpoint R4 — Report & Presentation (Reviewer: Vienna, by Sat 7 Nov)
 
-**Stage:** Phase 4 deliverables drafted. You own the narrative, the document
-standards, and the presentation, so this packet is yours to shape.
+> **Deferred after code corrections:** the report/deck have not been synchronized
+> with the current simple-return contract, tuning, cash units and outputs.
+> All readiness/results claims below are historical. See [README](../README.md).
+
+> **Historical snapshot (2026-10-28).** The report/deck values and narrative
+> below predate the 2026-11-01 predictor/target alignment correction and
+> are superseded. Review the current `report/main.tex`, regenerated deck,
+> and `review/AUDIT_REPORT.md`.
+
+> **Current status (2026-11-01):** the corrected report is 14 pages and the
+> rebuilt deck has 10 slides with speaker notes. The three focal volume rules
+> have positive but insignificant 1966–2011 estimates; none of the six volume
+> rules is significant at 5%. At h=1 and 10 bps net, mean–variance ΔU is
+> −0.39% p.a. for LASSO and −2.07% for post-LASSO. Main ML forecast targets
+> run from March 1971 (h=1), July 1971 (h=3), or January 1973 (h=12) through
+> December 2025. Figure 4's source calculations are in
+> `output/tables/table_subperiods_h1.csv`; the report table is generated from
+> that CSV. These changes remain uncommitted.
+
+**Stage:** Corrected report and presentation rebuilt; the original review
+checklist below is a historical snapshot. You own the narrative, document
+standards, and presentation, so review the corrected claims above and the
+current artifacts.
 
 ## Deliverables for review
 
 | Item | Path | Status |
 | :--- | :--- | :--- |
-| Final report PDF (11 pages, 11pt, 1.5 spacing) | `report/main.pdf` | compiled clean, 0 errors, 0 overfull boxes |
+| Final report PDF (14 pages, 11pt, 1.5 spacing) | `report/main.pdf` | rebuilt after the alignment correction and subperiod table; within the 15-page limit |
 | LaTeX source | `report/main.tex` | intro written last (per guidelines), abstract, data/methods/results/conclusion, appendix |
 | Presentation deck (10 slides + speaker notes per slide) | `deck/EC4308_Presentation.pptx` | generated from the result CSVs (`deck/make_deck.py`) |
-| Figures | `output/figures/figure1_wealth.png`, `figure2_r2oos.png`, `figure3_gr_weights.png` | in report + deck |
+| Figures | `output/figures/figure1_wealth.png`, `figure2_r2oos.png`, `figure3_gr_weights.png`, `figure4_subperiods.png` | includes descriptive subperiod figure; source values in `output/tables/table_subperiods_h1.csv` |
 | Submission package script | `scripts/make_submission_zip.R` | produces `submission/EC4308_Project_Submission.zip` |
 
 ## Your checklist
 
-- [ ] **Format compliance**: ≤15 pages (currently 11), 11pt, 1.5 spacing —
+- [ ] **Format compliance**: ≤15 pages (currently 14), 11pt, 1.5 spacing —
       verify in the PDF. Prof. Denis's rubric: intro written last, figures/
       tables self-contained with notes, methods outside class elaborated
       (rlasso theoretical penalty, GR constraints, CW test — all covered).
-- [ ] **Narrative coherence**: the story is "replication succeeds → extension
-      shows decay → honest negative statistical results → economic value
-      persists as risk management". Read the abstract, intro, and conclusion;
-      flag anything that oversells or undersells.
-- [ ] **Numbers match the tables**: intro quotes −8.2%..−50.3% R²_OOS,
-      drawdown −50%→−23%, MV gains 1.2–1.3% p.a. — cross-check against
-      `output/tables/table{2,3,5}_h1.csv`.
+- [ ] **Narrative coherence**: the corrected replication does not find 5%
+      significance for any volume rule; the extension is not interpreted as
+      evidence of decay. The main ML results and economic results are stated
+      separately and without causal claims.
+- [ ] **Numbers match the tables**: no volume rule is significant at 5%;
+      h=1 and 10 bps net ΔU is −0.39% p.a. for LASSO and −2.07% for
+      post-LASSO. Cross-check `table5_neely_replication.csv`,
+      `table3_h1.csv`, and `table_subperiods_h1.csv`.
 - [ ] **Deck timing**: 10 slides ≈ 10 minutes. Speaker notes are assigned:
       Vienna (slides 1–2, 8–10), Leon (3), En Shao (4), Sasi (5–7). Rehearse
       and re-split if the group prefers a different order.

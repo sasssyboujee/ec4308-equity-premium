@@ -11,9 +11,8 @@
 #                                    rlasso, postlasso, ridge, enet, pcr,
 #                                    pls, rf, equal_comb, gr_comb
 #
-# Parallelized over (horizon, model) with parallel::mclapply; every model
-# is deterministic (fixed seeds, num.threads = 1 for ranger), so re-runs
-# reproduce identical outputs.
+# Uses parallel::mclapply where supported; Windows runs one core because
+# forked workers are unavailable. Models are deterministic, so outputs match.
 #
 # Usage (repo root):  Rscript R/09_run_models.R [n_cores]
 # =============================================================================
@@ -25,10 +24,21 @@ source("R/08_models.R")
 source("R/10_combine_forecasts.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-n_cores <- if (length(args) >= 1L) as.integer(args[1]) else
-  min(6L, parallel::detectCores() - 1L)
+requested_cores <- if (length(args) >= 1L) as.numeric(args[1]) else 6L
+if (!is.finite(requested_cores) || requested_cores < 1L ||
+    requested_cores != as.integer(requested_cores)) {
+  stop("n_cores must be a positive integer.", call. = FALSE)
+}
+detected_cores <- parallel::detectCores()
+if (is.na(detected_cores)) detected_cores <- 1L
+max_cores <- if (.Platform$OS.type == "windows") 1L else
+  max(1L, min(6L, detected_cores - 1L))
+n_cores <- min(requested_cores, max_cores)
 spec <- if (length(args) >= 2L) args[2] else "full"
-hs <- if (length(args) >= 3L) as.integer(strsplit(args[3], ",")[[1]]) else CONFIG$HORIZONS
+hs <- if (length(args) >= 3L) as.numeric(strsplit(args[3], ",")[[1]]) else CONFIG$HORIZONS
+stopifnot(length(hs) >= 1L, !anyNA(hs), all(hs %in% CONFIG$HORIZONS),
+          !anyDuplicated(hs))
+hs <- as.integer(hs)
 panel_file <- if (length(args) >= 4L) args[4] else
   file.path(CONFIG$DATA_PROCESSED, "panel.csv")
 out_suffix <- if (length(args) >= 5L) args[5] else
@@ -36,6 +46,9 @@ out_suffix <- if (length(args) >= 5L) args[5] else
 
 panel <- read.csv(panel_file)
 panel$date <- as.Date(panel$date)
+stopifnot(!anyNA(panel$date), !anyDuplicated(panel$date),
+          identical(panel$date, seq(min(panel$date), max(panel$date), by = "month")),
+          all(is.finite(as.matrix(panel[, -1L]))))
 y <- panel[[CONFIG$TARGET]]
 
 # predictor-set variants (spec argument):
@@ -56,6 +69,10 @@ X <- as.matrix(panel[, spec_cols])
 
 cat(sprintf("Panel: %d rows | spec=%s | X: %d columns | %d cores | h in %s\n",
             nrow(panel), spec, ncol(X), n_cores, paste(hs, collapse = ",")))
+if (n_cores < requested_cores) {
+  cat(sprintf("Using %d core(s); this platform supports at most %d here.\n",
+              n_cores, max_cores))
+}
 
 BASE <- c("rlasso", "postlasso", "ridge", "enet", "pcr", "pls", "rf")
 fn <- list(
@@ -79,6 +96,9 @@ for (h in hs) {
     list(nm = jb$nm, oos = oos,
          secs = as.numeric(difftime(Sys.time(), t0, units = "secs")))
   }, mc.cores = n_cores)
+  if (any(vapply(res, inherits, logical(1), "try-error"))) {
+    stop("A forecast worker failed; forecasts were not saved.", call. = FALSE)
+  }
 
   out <- data.frame(target_index = res[[1]]$oos$target_index)
   out$date <- panel$date[out$target_index]
@@ -105,6 +125,23 @@ for (h in hs) {
                     sprintf("forecasts_h%d%s.csv", h, out_suffix))
   write.csv(out, dest, row.names = FALSE)
   cat(sprintf("Wrote: %s (%d OOS months)\n", dest, nrow(out)))
+}
+
+if (out_suffix == "_expanded") {
+  summary_rows <- lapply(hs, function(h) {
+    fc <- read.csv(file.path(CONFIG$DATA_PROCESSED,
+                            sprintf("forecasts_h%d_expanded.csv", h)))
+    actual <- y[fc$target_index]
+    models <- c(BASE, "equal_comb", "gr_comb")
+    data.frame(model = models, spec = sprintf("expanded (%d cols)", ncol(X)),
+               horizon = h, R2_OOS_pct = round(vapply(models, function(nm) {
+                 100 * (1 - sum((actual - fc[[nm]])^2) /
+                          sum((actual - fc$pm)^2))
+               }, numeric(1)), 3))
+  })
+  write.csv(do.call(rbind, summary_rows),
+            file.path(CONFIG$DATA_PROCESSED, "expanded_variant_summary.csv"),
+            row.names = FALSE)
 }
 
 cat(sprintf("\nTotal wall time: %0.1f min\n",

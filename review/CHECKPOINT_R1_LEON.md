@@ -1,5 +1,14 @@
 # Review Checkpoint R1 — Data & Features (Reviewer: Leon, by Wed 28 Oct)
 
+> **Superseded:** use [README](../README.md) for the current simple-return
+> contract, realized cash units, 146-predictor expanded set and pending review.
+> Historical checks below are not a sign-off on the corrected code.
+
+> **Historical snapshot (2026-10-28).** The data-validation findings remain
+> useful, but any forecast numbers in this packet predate the 2026-11-01
+> predictor/target alignment correction and must not be cited. Use the current
+> `review/AUDIT_REPORT.md` and regenerated outputs.
+
 **Stage:** Phase 1 (data pipeline) is complete and committed to `main`.
 **What you are reviewing:** the data layer only — panel construction, Table 1,
 technical signal replication. Nothing below touches the models yet.

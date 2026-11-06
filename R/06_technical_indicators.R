@@ -17,7 +17,7 @@
 # VALIDATION (reproducible via data/03_validate_signals.R):
 # against the published signals of Neely et al. (1950-12 .. 2011-12, 733
 # months), 12 of the 14 signals match 100% and the other 2 match 99.9%
-# (one month each: MOM_12 at 1968-03, VOL_2_9 at 1980-04).
+# (one month each: MOM_12 at 1968-03, VOL_2_9 at 1980-04; cause unverified).
 # =============================================================================
 
 # Simple moving average (trailing, sides = 1): SMA(k)[t] = mean(x[t-k+1..t]).

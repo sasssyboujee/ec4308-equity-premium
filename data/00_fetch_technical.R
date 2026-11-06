@@ -16,11 +16,9 @@
 #   * 2012-01 .. 2025-12: monthly AVERAGE daily volume of ^GSPC computed
 #     from Yahoo Finance daily bars (via yfinance) and shipped as
 #     data/raw/spx_volume_2012_2025.csv. Validation: on the 1985-2011
-#     overlap the UNTRUNCATED Yahoo series and the paper series have
-#     correlation 0.9999 with a near-constant ratio (independently
-#     re-verified; the shipped 2012+ CSV starts where the paper series ends,
-#     so it contains no overlap months itself). The VOL signals are invariant
-#     to any constant volume rescaling, so the splice is immaterial.
+#     overlap, earlier project notes claimed correlation 0.9999, but the
+#     untruncated daily source/overlap is not shipped and this script cannot
+#     verify that claim. Rescaling only one side of a splice can change signals.
 #
 # Usage (repo root):  Rscript data/00_fetch_technical.R
 # =============================================================================
@@ -40,8 +38,8 @@ if (!file.exists(dest_xls)) {
   cat("Downloading Neely et al. (2014) replication workbook ...\n")
   tryCatch(
     download.file(url_xls, dest_xls, mode = "wb"),
-    error = function(e) warning("Download failed (", conditionMessage(e),
-      "). Use the shipped file in data/raw/ instead.", call. = FALSE)
+    error = function(e) stop("Download failed: ", conditionMessage(e),
+                            call. = FALSE)
   )
 } else {
   cat("Using shipped file:", normalizePath(dest_xls), "\n")
@@ -64,12 +62,18 @@ if (!file.exists(vol_csv) && file.exists(dest_xls)) {
 # as raw data. Yahoo's API is rate-limited and unstable for scripting, so it
 # is intentionally NOT re-downloaded here; see data/README.md.
 ext_csv <- file.path(RAW, "spx_volume_2012_2025.csv")
-cat("Yahoo extension file:", file.exists(ext_csv), normalizePath(ext_csv), "\n")
+if (!file.exists(ext_csv)) stop("Missing provided monthly volume extension: ", ext_csv)
+cat("Yahoo extension file:", normalizePath(ext_csv), "\n")
 
 # --- sanity checks ------------------------------------------------------------
 v1 <- read.csv(vol_csv)
 v2 <- read.csv(ext_csv)
 stopifnot(min(v1$date) == "1950-01-01", max(v1$date) == "2011-12-01")
 stopifnot(min(v2$date) == "2012-01-01", max(v2$date) == "2025-12-01")
+v <- rbind(v1, v2)
+stopifnot(!anyDuplicated(v$date), !anyNA(v),
+          all(is.finite(v$volume_avg_daily)), all(v$volume_avg_daily > 0),
+          identical(as.Date(v$date),
+                    seq(as.Date("1950-01-01"), as.Date("2025-12-01"), by = "month")))
 cat(sprintf("Volume chain OK: %s .. %s, %d + %d = %d months, 0 NA\n",
             v1$date[1], tail(v2$date, 1), nrow(v1), nrow(v2), nrow(v1) + nrow(v2)))

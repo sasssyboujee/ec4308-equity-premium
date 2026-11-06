@@ -1,5 +1,14 @@
 # Review Checkpoint R3 — Evaluation, Tests & Trading Strategies (Reviewer: Sasi, by Wed 4 Nov)
 
+> **Superseded:** cash uses realized Rfree, costs include initial equity entry,
+> and unsupported CW p-values are removed. The historical sign-off below does
+> not cover these corrections. See [README](../README.md).
+
+> **Historical snapshot (2026-10-28).** The forecast and economic metrics
+> below predate the 2026-11-01 predictor/target alignment correction and are
+> superseded. Test-implementation checks are historical; use the current
+> `review/AUDIT_REPORT.md` and regenerated outputs for results.
+
 **✅ SIGNED OFF — Sasi, Tue 28 Oct 2026 (~01:50 SGT).**
 Decision 1 (h>1 switching timing): **timing A kept** (default, as implemented).
 All six checklist items were re-verified on his behalf on 28 Oct: DM

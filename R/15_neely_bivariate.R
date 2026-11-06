@@ -7,13 +7,12 @@
 #
 # estimated on the same fixed 240-month rolling window as the main models,
 # then combine the 14 bivariate forecasts with the equal-weight average and
-# a constrained Granger-Ramanathan regression. This is the design in which
-# the original paper finds technical indicators beat the prevailing mean;
-# we re-run it on the extended 1971-2025 out-of-sample period.
+# a constrained Granger-Ramanathan regression. This is an adapted rolling
+# exercise on 1971-2025, not an exact replication of the original study.
 #
 # Output: data/processed/forecasts_h1_neely_biv.csv (14 signal forecasts +
 #         equal/gr combinations) and output/tables/table4_h1.csv (accuracy
-#         vs prevailing mean: R2_OOS, DM RMSE, CW).
+#         vs prevailing mean: R2_OOS and one-sided squared-error DM).
 # Usage (repo root):  Rscript R/15_neely_bivariate.R
 # =============================================================================
 
@@ -21,7 +20,6 @@ source("R/00_config.R")
 source("R/01_rolling_window.R")
 source("R/02_prevailing_mean.R")
 source("R/03_diebold_mariano.R")
-source("R/12_clark_west.R")
 source("R/10_combine_forecasts.R")
 
 panel <- read.csv(file.path(CONFIG$DATA_PROCESSED, "panel.csv"))
@@ -36,6 +34,7 @@ biv_fn <- function(which_sig) {
   function(y, X, X_new, ...) {
     s  <- X[, which_sig]
     sN <- X_new[, which_sig]
+    if (length(unique(s)) == 1L) return(mean(y))
     fit <- stats::lm.fit(x = cbind(1, s), y = y)
     as.numeric(cbind(1, sN) %*% fit$coefficients)
   }
@@ -68,13 +67,10 @@ rows <- lapply(c(CONFIG$TECHNICAL_NAMES, "equal_comb", "gr_comb"), function(nm) 
   e <- actual - f; epm <- actual - pm$forecast
   r2 <- 100 * (1 - sum(e^2) / sum(epm^2))
   dm <- dm_test(actual, f, pm$forecast, power = 2L, h = h, alternative = "less")
-  cw <- cw_test(actual, pm$forecast, f, h = h)
   data.frame(predictor = nm, RMSE = sqrt(mean(e^2)),
              R2_OOS_pct = round(r2, 3),
              DM_RMSE_stat = round(dm$statistic, 3),
-             DM_RMSE_p = round(dm$p.value, 4),
-             CW_stat = round(cw$statistic, 3),
-             CW_p = round(cw$p.value, 4))
+             DM_RMSE_p = round(dm$p.value, 4))
 })
 tab4 <- do.call(rbind, rows)
 write.csv(tab4, file.path(CONFIG$OUTPUT_TABLES, "table4_h1.csv"), row.names = FALSE)

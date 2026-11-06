@@ -10,22 +10,22 @@
 # H1 (one-sided, "less"): E[d_t] < 0  ->  f1 is MORE accurate than f2
 #
 # The long-run variance of d_t is estimated with a Newey-West (Bartlett)
-# kernel using lag = h - 1, because h-step-ahead forecast errors follow an
-# MA(h-1) process. Implemented in base R so the evaluation module has zero
-# package dependencies.
+# kernel using the conventional lag = h - 1. Estimated nonlinear models'
+# loss differentials need not be exactly MA(h-1); this is a bandwidth choice,
+# not a guarantee of inference validity for every data-generating process.
 #
-# Cross-check note: at h = 1 our statistic equals forecast::dm.test's up to
-# the variance denominator (we use the T-normalized Newey-West convention;
-# forecast uses the unbiased (T-1) variance at lag 0 -- a 0.08% difference
-# at T = 659). At h > 1 the two implementations also differ by kernel
-# weighting (we use Bartlett weights; forecast sums the raw
-# autocovariances). Both are consistent HAC estimators; no inference in
-# this project is affected (verified).
+# We use T-normalized autocovariances and asymptotic normal p-values, with
+# no Harvey small-sample correction. Do not expect numerical identity to
+# forecast::dm.test, which uses a different finite-sample convention.
+# R/99 independently checks the Bartlett covariance as a quadratic form.
 # =============================================================================
 
 hac_var_mean <- function(x, lag = 0L) {
   # Newey-West variance of the SAMPLE MEAN of a series (LRV / T).
   T  <- length(x)
+  stopifnot(is.numeric(x), all(is.finite(x)), T >= 2L,
+            length(lag) == 1L, is.finite(lag), lag >= 0L,
+            lag == as.integer(lag), lag < T)
   xc <- x - mean(x)
   g0 <- sum(xc^2) / T
   if (lag <= 0L || T < lag + 1L) return(g0 / T)
@@ -41,7 +41,12 @@ hac_var_mean <- function(x, lag = 0L) {
 dm_test <- function(actual, f1, f2, power = 2L, h = 1L,
                     alternative = c("two.sided", "less", "greater")) {
   alternative <- match.arg(alternative)
-  stopifnot(length(actual) == length(f1), length(actual) == length(f2))
+  stopifnot(is.numeric(actual), is.numeric(f1), is.numeric(f2),
+            all(is.finite(actual)), all(is.finite(f1)), all(is.finite(f2)),
+            length(actual) == length(f1), length(actual) == length(f2),
+            length(power) == 1L, power %in% c(1L, 2L),
+            length(h) == 1L, is.finite(h), h == as.integer(h),
+            h >= 1L, h <= length(actual))
 
   e1 <- actual - f1
   e2 <- actual - f2
@@ -54,7 +59,12 @@ dm_test <- function(actual, f1, f2, power = 2L, h = 1L,
     # identical forecasts: no loss differential, zero statistic
     stat <- 0
   } else {
-    stat <- dbar / sqrt(hac_var_mean(d, lag = h - 1L))
+    v <- hac_var_mean(d, lag = h - 1L)
+    if (!is.finite(v) || v <= 0) {
+      stop("DM loss differential has no positive estimated variance.",
+           call. = FALSE)
+    }
+    stat <- dbar / sqrt(v)
   }
 
   p <- switch(
