@@ -1,9 +1,11 @@
 % =============================================================================
-% EC4308 Final Project Report
-% "Forecasting the Equity Risk Premium Out-of-Sample: Regularized Machine
-%  Learning, Technical Indicators & Tactical Asset Allocation"
-% Format: <= 15 pages, 11pt, 1.5 line spacing (Prof. Denis's requirements)
-% Build from report/: tectonic -r 2 main.tex
+% EC4308 Final Project Report -- Group 6
+% "Can Machine Learning Beat the Historical Average? Forecasting the US
+%  Equity Premium Out-of-Sample"
+% Format: <= 15 pages incl. tables/figures/references, 11pt, 1.5 line spacing
+% Build from report/: tectonic main.tex
+% Every number in the prose is taken from output/tables/*.csv,
+% data/processed/expanded_variant_summary.csv or R/00_config.R.
 % =============================================================================
 \documentclass[11pt,a4paper]{article}
 
@@ -21,406 +23,495 @@
 \onehalfspacing
 \sloppy
 
-\title{\vspace{-1.2cm}Forecasting the Equity Risk Premium Out-of-Sample:\\[2mm]
-Regularized Machine Learning, Technical Indicators and\\Tactical Asset Allocation\vspace{-2mm}}
-\author{Leon \quad En Shao \quad Sasinthiran Kannan \quad Vienna\\
+\title{\vspace{-1.2cm}Can Machine Learning Beat the Historical Average?\\[1mm]
+Forecasting the US Equity Premium with Regularized Models,\\Technical Indicators and Switching Strategies\vspace{-2mm}}
+\author{Group 6: Kannan Sasinthiran \quad Kollaart Leon Samuel\\ Vienna Fiorella Anong \quad Yeap En Shao\\[1mm]
 EC4308 Machine Learning and Economic Forecasting, AY 2026/2027 Semester 1}
 \date{9 November 2026}
 
 \begin{document}
 \maketitle
-\vspace{-1.6cm}
+\vspace{-1.4cm}
 
 \begin{abstract}
-\noindent We re-examine out-of-sample predictability of the US equity premium using a
-fixed 240-month rolling-window design on data spanning February 1951 to December 2025.
-The predictor set combines the fourteen Goyal--Welch (2008) macroeconomic variables
-(with one to six monthly lags) and the fourteen technical indicators of
-Neely, Rapach, Tu and Zhou (2014), which we reproduce from raw price and volume
-data with a 99.98\% signal-month match to the published series. Against the
-prevailing historical mean benchmark we evaluate $\ell_1$-penalized least
-squares (LASSO and post-LASSO), Ridge, Elastic Net, principal components and
-partial least squares regressions, and random forests, together with equal-weight
-and constrained Granger--Ramanathan forecast combinations, at horizons
-$h\in\{1,3,12\}$. Statistical accuracy is assessed with the Diebold--Mariano
-(1995) test on squared and absolute errors,
-and economic value with a binary switching strategy and a mean--variance
-investor, both net of transaction costs. Our expanding-window comparison
-uses 178 correctly timed predictor--target pairs before the January 1966
-forecast, versus the 181-month initial window in the original study. Our
-computed technical signals match the published series in 99.98\% of
-signal-months. On the 1966--2011 sample, the three focal volume-rule
-estimates are positive, but none of the six volume rules is significant at
-5\%. On the extended sample, however,
-no model beats the prevailing mean at any horizon: out-of-sample $R^2$ ranges
-from $-15.49\%$ to $-0.38\%$, while hit rates are close to the benchmark.
-At $h=1$, the LASSO switching strategy has lower terminal wealth and only
-modestly smaller maximum drawdown than buy-and-hold, while mean--variance
-utility differences are negative for all forecast models. At $h=1$ and
-10 bps net, $\Delta U$ is $-0.39\%$ p.a. for LASSO and $-2.07\%$ for
-post-LASSO. The corrected
-results provide no evidence that these forecasts improve on the prevailing
-mean in point-forecast accuracy or mean--variance utility.
+\noindent We ask whether regularized machine learning models, fed with the
+fourteen Goyal--Welch macroeconomic predictors (one to six lags) and the
+fourteen technical indicators of Neely et al.\ (2014), can forecast the
+monthly simple US equity premium better than the prevailing historical mean.
+Using a fixed 240-month rolling window on 1951:02--2025:12 data, we evaluate
+seven models and two forecast combinations at horizons of 1, 3 and 12 months.
+Only ridge regression attains a positive out-of-sample $R^2$ (0.12\% at
+$h=1$ and 0.30\% at $h=3$), and none of the 54 one-sided Diebold--Mariano
+tests rejects equal accuracy (smallest $p=0.23$). An adapted replication of
+Neely et al.\ (2014) yields positive but insignificant single-signal gains
+on 1966--2011 and uniformly negative ones on 2012--2025. Economically, a
+ridge-driven switching strategy ends at \$499 per dollar versus \$342 for
+buy-and-hold at $h=1$ net of 10 bps costs, but four of nine forecast
+strategies trail buy-and-hold, most strategies lose at $h=12$, and these
+gains are not tested for significance. Overall, we find no statistically
+reliable improvement on the historical average.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
-Whether the equity premium is predictable out-of-sample is one of the most
-debated questions in empirical finance. Goyal and Welch (2008) showed that a
-broad set of macroeconomic variables fails to beat the historical average in
-real time, and Goyal, Welch and Zafirov (2024) reach the same verdict with a
-greatly expanded predictor set. Against this backdrop, Neely, Rapach, Tu and
-Zhou (2014) report that \emph{technical indicators}---moving average,
-momentum and on-balance volume rules---do contain out-of-sample predictive
-content for the premium on their 1966--2011 evaluation period, and Gu, Kelly
-and Xiu (2020) document the promise of machine learning methods in asset
-pricing more generally.
+Whether the equity premium is predictable out-of-sample matters both for
+asset allocation and for asset pricing theory. Goyal and Welch (2008) showed
+that a broad set of macroeconomic predictors fails to beat the prevailing
+(historical) mean in real time, and Goyal, Welch and Zafirov (2024) reach a
+similar verdict with a much larger predictor set. Campbell and Thompson
+(2008) argue that even a small positive out-of-sample $R^2$ can be
+economically valuable, while Neely, Rapach, Tu and Zhou (2014) report that
+technical indicators contain out-of-sample information on their 1966--2011
+sample. Machine learning appears to offer a way forward: Gu, Kelly and Xiu
+(2020) document gains from shrinkage and nonlinear methods in asset pricing.
+Monthly premium forecasting, however, combines a very low signal-to-noise
+ratio with many correlated, persistent predictors---exactly the setting in
+which flexible models can overfit.
 
-This paper asks a simple question: once the technical-indicator information
-of Neely et al.\ (2014) is combined with the Goyal--Welch macro variables and
-fed through modern regularized machine learning models, does anything beat
-the prevailing historical mean on the extended 1951--2025 sample? We follow
-a disciplined protocol: a fixed 240-month rolling window, a strict
-no-lookahead alignment convention, the prevailing mean as the only benchmark,
-Diebold--Mariano (1995) tests with HAC inference, and economic evaluation net
-of transaction costs. To validate the data, we match the published technical
-signals in 99.98\% of signal-months, then use a time-aligned expanding-window
-bivariate design on the 1966--2011 sample. Its correctly timed predictor--
-target pairs provide 178 initial observations, compared with 181 months in
-the original design.
+We address three research questions. \emph{RQ1}: can regularized and
+dimension-reduction models (or forecast combinations) produce a positive and
+statistically significant out-of-sample $R^2$ against the prevailing mean?
+\emph{RQ2}: do the Neely et al.\ (2014) technical signals add predictive
+value, on their original sample and after 2011? \emph{RQ3}: do the forecasts
+deliver economic value to a switching investor or a mean--variance investor
+after transaction costs?
 
-Three findings emerge. First, on the extended sample no model---LASSO,
-post-LASSO, Ridge, Elastic Net, PCR, PLS, random forest, or forecast
-combinations---beats the prevailing mean at any horizon; out-of-sample $R^2$
-ranges from $-15.49\%$ to $-0.38\%$. Second, the three focal volume-rule
-estimates are positive but do not reach 5\% significance on the 1966--2011
-sample, and none of the six volume rules is significant at that level; the
-three focal estimates are negative on the extension. Third, at $h=1$ the
-LASSO switching strategy has lower terminal wealth than buy-and-hold and a
-modestly smaller maximum drawdown, while forecast-based mean--variance
-utility differences are negative. At $h=1$ and 10 bps net, $\Delta U$ is
-$-0.39\%$ p.a. for LASSO and $-2.07\%$ for post-LASSO. The remainder of the
-paper describes the data (Section~\ref{sec:data}), the methods
-(Section~\ref{sec:method}), the results (Section~\ref{sec:results}) and
-concludes in Section~\ref{sec:conclusion}.
+Our contribution is a carefully time-aligned comparison rather than a new
+model. We rebuild the fourteen technical signals from raw price and volume
+data, combine them with lagged macro predictors in a 98-column design,
+estimate seven models in a fixed rolling window with horizon-correct
+in-window tuning, use the prevailing mean as the only benchmark, and report
+both statistical and economic evaluations, including several robustness
+checks. Several design choices were revised after the instructor's feedback
+on our proposal (Section~\ref{sec:method:changes}).
+
+The answers are largely negative. Only ridge regression has a positive
+$R^2_{\mathrm{OOS}}$ (0.12\% at $h=1$, 0.30\% at $h=3$), no Diebold--Mariano
+test is significant at any horizon, and the random forest is the least
+accurate model throughout. The single-signal technical regressions are
+insignificant on 1966--2011 and negative afterwards. Some switching
+strategies end with more wealth than buy-and-hold at $h=1$, but the gains
+are model-specific, shrink at longer horizons, and are not supported by a
+significance test.
 
 \section{Data}\label{sec:data}
 
-\subsection{Sources and sample}\label{sec:data:sources}
-The target variable is the monthly log equity premium on the S\&P 500,
-$y_t = 100\,(\ln(1+R^m_t) - \ln(1+R^f_t))$, where $R^m_t$ is the value-weighted
-S\&P 500 return including dividends and $R^f_t$ the risk-free rate, taken from
-the continuously updated Goyal--Welch--Zafirov (2024) dataset (monthly
-observations 1871:01--2025:12). The premium is expressed in percent per month;
-over the estimation sample its mean is 0.66\% with a standard deviation of
-4.21\%. The fourteen macroeconomic predictors follow Goyal and Welch (2008):
-dividend-price ratio, dividend yield, earnings-price ratio, dividend payout
-ratio, stock variance, book-to-market, net equity expansion, Treasury bill
-rate, long-term yield, long-term return, term spread, default yield spread,
-default return spread, and inflation. Each macro predictor enters with one to
-six monthly lags.
+\subsection{Target and predictors}\label{sec:data:sources}
+The target is the monthly \emph{simple} equity premium in percent,
+$y_t = 100\,(R^m_t - R^f_t)$, where $R^m_t$ is the S\&P 500 return including
+dividends and $R^f_t$ the risk-free rate, both taken from the continuously
+updated Goyal--Welch--Zafirov (2024) workbook. Over 1951:02--2025:12 the
+premium averages 0.66\% per month with a standard deviation of 4.21\%
+(Table~\ref{tab:table1}). The fourteen macroeconomic predictors follow Goyal
+and Welch (2008): the dividend--price ratio, dividend yield,
+earnings--price ratio, dividend payout ratio, stock variance,
+book-to-market, net equity expansion, Treasury bill rate, long-term yield,
+long-term return, term spread, default yield spread, default return spread
+and inflation. Each enters with lags one to six, giving 84 columns.
 
-The fourteen technical indicators follow Neely et al.\ (2014): six moving
-average rules $\mathrm{MA}(j,m)$ with $j\in\{1,2,3\}$ and $m\in\{9,12\}$
-comparing short and long moving averages of the index level, two momentum
-rules $\mathrm{MOM}(m)$, $m\in\{9,12\}$, and six on-balance volume rules
-$\mathrm{VOL}(j,m)$ comparing moving averages of on-balance volume. Each
-indicator is a binary signal (1 = hold equities). We compute the signals from
-the raw index level and monthly S\&P 500 volume: the paper's own volume series
-for 1950--2011 and monthly average daily volume from Yahoo Finance for
-2012--2025 (the untruncated Yahoo series correlates 0.9999 with the paper
-series on their 1985--2011 overlap, and the
-volume-based signals are invariant to a constant volume rescaling). Against
-the published signals of Neely et al.\ (2014) over their 1950:12--2011:12
-sample, 12 of the 14 signals match exactly and the remaining two match in
-99.9\% of months; the two mismatching months are documented data revisions.
+The fourteen technical indicators follow Neely et al.\ (2014): six
+moving-average rules $\mathrm{MA}(s,l)$ with $s\in\{1,2,3\}$ and
+$l\in\{9,12\}$, two momentum rules $\mathrm{MOM}(m)$, $m\in\{9,12\}$, and six
+on-balance-volume rules $\mathrm{VOL}(s,l)$. Each is a binary buy signal.
+MA and MOM rules use the index level from the Goyal--Welch--Zafirov workbook;
+VOL rules use monthly average daily S\&P 500 volume, taken from the Neely et
+al.\ replication files for 1950--2011 and from Yahoo Finance for 2012--2025.
+Against the published signals over 1950:12--2011:12 (733 months per
+signal), twelve signals match exactly and MOM(12) and VOL(2,9) differ in one
+month each (1968:03 and 1980:04), an overall match of 99.98\%; we do not
+know the cause of the two differences. The baseline design therefore has
+98 predictors (84 macro-lag columns and 14 signals).
 
-\subsection{Alignment and sample period}\label{sec:data:align}
-Row $t$ of the panel holds the premium \emph{earned} in month $t$ together
-with predictors \emph{observable at the end of month $t$}. Macro lag columns
-satisfy $x^{\mathrm{lag}\,k}_t = x_{t-k}$, $k=1,\dots,6$; technical signals at
-row $t$ use price and volume data through month $t$ only, so no forecast uses
-information unavailable at its origin. The sample is the first month in which
-every column is non-missing (1951:02, driven by the twelve-month burn-in of
-the volume rules) through 2025:12, giving $T=899$ monthly observations.
-Table~\ref{tab:table1} reports summary statistics and augmented
-Dickey--Fuller (BIC lag selection, intercept and trend) tests.
+\subsection{Expanded predictor set}\label{sec:data:expanded}
+As a robustness variant we add eight variables from the Goyal et al.\ (2024)
+set (skvw, tail, rdsp, avgcor, dtoy, dtoat, wtexas, lzrt), each with six
+lags, giving 146 predictors. These are the only additional variables that
+are observed monthly throughout the sample and are not flagged as
+full-sample constructions. We exclude fbm, ogap, sntm, tchi and shtint
+because the data documentation describes them as full-sample constructions,
+so lagging them would not remove look-ahead bias; twelve further variables
+(e.g.\ cay, pce, eqis) are not available monthly; and csp, vp, impvar, vrp,
+ndrbl, ygap, rsvix and disag start after or end before our sample, so
+including them would shorten the common sample. The expanded variant is
+therefore a partial, not exhaustive, use of the Goyal et al.\ (2024)
+predictor set.
+
+\subsection{Alignment and sample}\label{sec:data:align}
+Row $t$ of the panel holds the premium earned in month $t$ and predictors
+observable at the end of month $t$: macro lag columns satisfy
+$x^{(k)}_t = x_{t-k}$, and technical signals use prices and volume through
+month $t$ only. The common sample runs from 1951:02 (all lags and signals
+available) to 2025:12, giving $T=899$ months. Table~\ref{tab:table1}
+reports summary statistics and augmented Dickey--Fuller tests: the premium
+is clearly stationary, whereas valuation ratios and interest-rate levels are
+highly persistent, which is one reason we rely on regularization and
+dimension reduction rather than unrestricted regression.
 
 \input{../output/tables/table1_tex.tex}
 
 \section{Methodology}\label{sec:method}
 
-\subsection{Rolling-window forecasting design}\label{sec:method:design}
-All models are estimated on a fixed 240-month (20-year) rolling window and
-produce an $h$-month-ahead forecast of the premium, $h\in\{1,3,12\}$. A
-training observation pairs predictors $X_s$, observable at the end of month
-$s$, with the premium earned in month $s+h$. At forecast origin $t$, training
-pairs are restricted to outcomes observed by $t$; the window contains 240
-valid pairs. The benchmark is the prevailing (historical) mean premium
-computed through the forecast origin, the only admissible benchmark for this
-exercise: OLS benchmark forecasts fail out-of-sample and are not used.
+\subsection{Forecasting design}\label{sec:method:design}
+At the end of month $t$ we forecast the premium earned in month $t+h$ for
+$h\in\{1,3,12\}$. The target is always a single month's premium $h$ months
+ahead, not a cumulative $h$-month return. A training pair links predictors
+$X_s$ with the outcome $y_{s+h}$, and at origin $t$ only pairs with
+$s+h\le t$ are eligible, so no outcome after the origin is used. Every
+model is re-estimated each month on a fixed window of the 240 most recent
+eligible pairs (20 years). The out-of-sample periods contain 658 targets
+from 1971:03 at $h=1$, 654 from 1971:07 at $h=3$, and 636 from 1973:01 at
+$h=12$. The benchmark is the prevailing mean, the expanding average of all
+premia observed up to the origin.
 
-\subsection{Models}\label{sec:method:models}
-The predictor matrix is wide relative to the 240-month estimation window,
-its columns are highly correlated (six lags of fourteen persistent macro
-series plus fourteen signals that switch in clusters), and any true signal
-is likely sparse and episodic. This is precisely the setting for which the
-penalized and dimension-reduction estimators below are designed: the
-$\ell_1$/$\ell_2$ penalties tame the collinearity, the component methods
-condense the factor structure, and the random forest admits nonlinear
-interactions and threshold effects that linear models cannot represent. We
-estimate seven models within each window: (i) LASSO with the theoretical,
-data-driven penalty of \texttt{hdm::rlasso} (no cross-validation required);
-(ii) post-LASSO, i.e.\ OLS refit on the LASSO-selected support; (iii) Ridge
-and (iv) Elastic Net ($\alpha=0.5$) with the penalty chosen by ten-fold
-cross-validation \emph{inside the training window} (no information from the
-test month is ever used); (v) principal components regression and (vi)
-partial least squares with the number of components selected by
-cross-validated PRESS (scaled inputs, at most 20 components); and (vii) a
-random forest (500 trees, $m_{\mathrm{try}}=p/3$, minimum node size 5, fixed
-seed, single-threaded for exact reproducibility). All models use the same
-$98$-predictor matrix (84 macro-lag columns plus 14 technical signals); the
-expanded Goyal--Welch--Zafirov (2024) predictors are held out as a
-robustness variant. That variant adds only the eight expanded variables that
-are observed monthly throughout 1951:02--2025:12 and are not constructed
-with full-sample information (skvw, tail, rdsp, avgcor, dtoy, dtoat, wtexas,
-lzrt), each with six lags, giving 146 predictors. We exclude fbm, ogap, sntm,
-tchi and shtint because the data documentation describes them as full-sample
-constructions, so lagging them would not remove look-ahead bias; twelve
-further variables (e.g.\ cay, pce, eqis) are not available monthly; and csp,
-vp, impvar, vrp, ndrbl, ygap, rsvix and disag start after or end before our
-sample, so including them would shorten the common sample. The expanded
-variant is therefore a partial, not exhaustive, use of the Goyal et al.\
-(2024) predictor set.
+\subsection{Models and tuning}\label{sec:method:models}
+The design is wide relative to a 240-month window and its columns are
+highly correlated, so we use methods covered in the course that regularize
+or compress the predictor space, plus one nonlinear learner. The seven
+models are: (i) LASSO with the data-driven plug-in penalty of
+\texttt{hdm::rlasso} (Chernozhukov, Hansen and Spindler, 2016), which sets
+the penalty from theory and heteroskedasticity-robust loadings instead of
+cross-validation; (ii) post-LASSO, an OLS refit on the rlasso-selected
+variables; (iii) ridge and (iv) elastic net ($\alpha=0.5$) from
+\texttt{glmnet}; (v) principal components regression and (vi) partial
+least squares on standardized predictors with at most 20 components (zero
+components, i.e.\ the window mean, is also allowed); and (vii) a random
+forest with 500 trees, $m_{\mathrm{try}}=\lfloor p/3\rfloor$, minimum node
+size 5 and a fixed seed.
+
+The penalty of ridge and elastic net and the number of components of PCR
+and PLS are chosen inside each training window by forward chronological
+validation. The second half of the window is split into three consecutive
+validation blocks; for each block the model is fitted only on earlier pairs
+whose outcomes would have been observed when the block starts (the $h-1$
+pairs immediately before the block are dropped), and squared validation
+errors are summed over the three blocks.
+Preprocessing (dropping constant columns, standardization) is redone within
+each fold, and the glmnet penalty grid is set from the first training
+segment only. The selected tuning parameter is then refitted on the full
+window. No information from the test month or later enters any forecast.
 
 \subsection{Forecast combinations}\label{sec:method:combos}
-We combine the seven model forecasts with (i) the simple equal-weight average
-and (ii) a constrained Granger--Ramanathan (1984) regression: at each origin
-the weights solve $\min_w \|y-Fw\|^2$ subject to $\sum_i w_i = 1$ and
-$w_i\ge0$, estimated only on past out-of-sample forecast errors known at that
-origin (targets $\le$ origin). Before 60 usable observations accumulate,
+We combine the seven model forecasts with (i) an equal-weight average and
+(ii) a constrained Granger--Ramanathan (1984) regression. For the latter,
+at each origin the weights solve $\min_w \|y-Fw\|^2$ subject to
+$\sum_i w_i=1$ and $w_i\ge0$, where $F$ contains only past out-of-sample
+forecasts whose errors are known at that origin. The constraints turn the
+regression into a convex weighting that cannot take offsetting long--short
+positions in highly correlated forecasts. Until 60 such observations exist,
 equal weights are used.
 
 \subsection{Evaluation}\label{sec:method:eval}
-Statistical accuracy is measured by out-of-sample RMSE and MAE and the
-Campbell--Thompson (2008) $R^2_{\mathrm{OOS}} = 1 - \sum e_t^2 / \sum
-e_{t,\mathrm{PM}}^2$ against the prevailing mean. Significance is tested with
-the Diebold--Mariano (1995) statistic on squared and absolute error
-differentials, with Newey--West long-run variance (lag $h-1$). Following the
-course, we use the Diebold--Mariano test only and do not report the
-Clark--West (2007) nested-model test. Economic value is assessed with two
-strategies net of transaction costs (baseline 10 bps, sensitivity 5 and
-20 bps). Each switch, including the initial equity purchase, is charged this
-cost. We assume the investor trades an S\&P 500 ETF and Treasury bills; major
-US brokers now charge zero online commission on both (e.g.\ Charles Schwab,
-2026), and a one-cent quoted spread on a liquid S\&P 500 ETF priced in the
-hundreds of dollars is well below 1 bp. The 10 bps baseline is therefore a
-conservative all-in cost covering spread, slippage and price impact, and the
-20 bps case reflects the higher trading costs of earlier decades: (i) a binary switching strategy that holds the S\&P 500 when the
-$h$-month-ahead premium forecast is positive and three-month Treasury bills
-otherwise, reporting terminal wealth, annualized Sharpe ratio, maximum
-drawdown, and turnover; and (ii) a mean--variance investor with risk aversion
-$\gamma=3$ who allocates $w_t = (1/\gamma)\,\hat y_t / \hat\sigma^2_t$ to
-equities, clamped to $[0,1.5]$, where $\hat\sigma^2_t$ is realized variance
-over the previous 60 months, measured using information available at the
-forecast origin; the certainty-equivalent return gain
-$\Delta U$ relative to the benchmark allocation is reported.
+Accuracy is measured by RMSE, MAE, hit rate and the Campbell--Thompson
+(2008) statistic $R^2_{\mathrm{OOS}}=1-\sum e_t^2/\sum e_{t,\mathrm{PM}}^2$
+relative to the prevailing mean. Significance is assessed with one-sided
+Diebold--Mariano (1995) tests on squared and absolute error differentials
+(alternative: the model is more accurate), using a Newey--West variance with
+lag $h-1$ and normal critical values. Following the course, we use the
+Diebold--Mariano test only and do not report the Clark--West (2007)
+nested-model test.
+
+Economic value is assessed in two ways. First, a binary switching strategy
+holds the S\&P 500 in a month if the forecast of that month's premium is
+positive and the risk-free asset otherwise; we report terminal wealth per
+\$1, the annualized Sharpe ratio, maximum drawdown and the number of
+switches, and compare with buy-and-hold. In the main specification the
+position for month $t$ uses the forecast of month $t$ made at $t-h$, so for
+$h>1$ the signal is older; Section~\ref{sec:results:robust} reports an
+alternative timing. Every strategy starts in cash and is charged the cost
+on every switch, including the initial equity purchase, with no terminal
+liquidation. Costs are 10 bps per switch in the baseline, with 5 and 20 bps
+as sensitivity cases. We assume the investor trades an S\&P 500 ETF and
+Treasury bills; major US brokers now charge zero online commission on both
+(e.g.\ Charles Schwab, 2026), and a one-cent quoted spread on a liquid
+S\&P 500 ETF priced in the hundreds of dollars is well below 1 bp. The
+10 bps baseline is therefore a conservative all-in cost covering spread,
+slippage and price impact, and the 20 bps case reflects the higher trading
+costs of earlier decades. Second, a mean--variance investor with relative
+risk aversion $\gamma=3$ holds $w_t=\hat y_t/(\gamma\hat\sigma^2_t)$ in
+equities, bounded to $[0,1.5]$, where $\hat\sigma^2_t$ is the sample
+variance of the 60 monthly returns up to the origin. We report the
+annualized certainty-equivalent gain $\Delta U$ over the same investor
+using the prevailing-mean forecast, net of the same proportional costs on
+weight changes.
+
+\subsection{Changes after proposal feedback}\label{sec:method:changes}
+Following the instructor's comments on our proposal, we replaced an OLS
+benchmark with the prevailing mean, replaced a glmnet LASSO
+with rlasso and post-LASSO, replaced the Clark--West test with
+Diebold--Mariano tests on squared and absolute errors, extended the macro
+predictors from one lag to up to six lags, and added the switching strategy
+and the constrained Granger--Ramanathan combination.
 
 \section{Results}\label{sec:results}
 
-\subsection{Statistical accuracy}\label{sec:results:accuracy}
-Table~\ref{tab:table2} reports out-of-sample RMSE, MAE, $R^2_{\mathrm{OOS}}$,
-hit rate, and the Diebold--Mariano $p$-values of every model
-against the prevailing mean at each horizon, and
-Figure~\ref{fig:r2oos} visualizes the $R^2_{\mathrm{OOS}}$ profile. The
-central result is unambiguous: \emph{no model beats the prevailing mean}.
-All nine forecast models have negative out-of-sample $R^2$ at each horizon.
-At $h=1$, the prevailing-mean RMSE is 4.403; LASSO has the least negative
-$R^2_{\mathrm{OOS}}$ ($-1.06\%$), while random forest has the most negative
-($-15.49\%$). Post-LASSO is closest to the benchmark at $h=3$ ($-0.38\%$)
-and $h=12$ ($-0.52\%$). Across all horizons, the one-sided Diebold--Mariano
-tests find no statistically significant evidence that a model improves on
-the benchmark (minimum one-sided $p=0.677$). This
-does not support the previous claim that models are significantly worse.
-Hit rates range from 53.5\% to 60.1\%, compared with prevailing-mean rates
-of 59.7\% to 59.9\%; thus, the direction metric is close to the benchmark
-and is not uniformly lower. The full, technical-only and macro-only
-predictor-set results are negative as well (Appendix~\ref{app:variants}).
+\subsection{Statistical accuracy and significance}\label{sec:results:accuracy}
+Table~\ref{tab:table2} and Figure~\ref{fig:r2oos} summarize point-forecast
+accuracy. Of the 27 model--horizon pairs, only two have a positive
+$R^2_{\mathrm{OOS}}$: ridge at $h=1$ (0.12\%) and at $h=3$ (0.30\%). At
+$h=12$ every model is less accurate than the prevailing mean; the
+equal-weight combination comes closest ($-0.48\%$). The random forest is the
+least accurate model at every horizon ($-15.53\%$, $-12.33\%$ and
+$-10.47\%$), consistent with a flexible learner fitting noise in a
+240-month window. The simple combinations are generally close to the
+benchmark: the Granger--Ramanathan combination has $R^2_{\mathrm{OOS}}$ of
+$-0.54\%$ at $h=1$ and the equal-weight combination $-0.14\%$ at $h=3$.
+
+None of these differences is statistically significant. Across nine models,
+three horizons and two loss functions (54 tests), no one-sided
+Diebold--Mariano test rejects equal accuracy even at 10\%. The smallest
+$p$-value is 0.23, for ridge at $h=1$ under absolute-error loss; under
+squared-error loss ridge has $p=0.451$ at $h=1$ and $p=0.341$ at $h=3$. The
+positive ridge $R^2$ values should therefore be read as indistinguishable
+from zero, particularly as they are the best of 27 comparisons. Hit rates
+lie between 54.1\% and 61.2\%, against 59.7\% to 59.9\% for the prevailing
+mean, so directional accuracy is also close to the benchmark.
+
+Figure~\ref{fig:grweights} shows that the Granger--Ramanathan combination
+at $h=1$ concentrates on a few linear models---mainly ridge, PCR and elastic
+net, with ridge dominant after 2009---and gives essentially no weight to the
+random forest. This reflects which models had smaller past errors, but it
+did not translate into a significant gain.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{../output/figures/figure2_r2oos.png}
-\caption{Out-of-sample $R^2$ (\%) versus the prevailing mean by model and
+\includegraphics[width=0.7\textwidth]{../output/figures/figure2_r2oos.png}
+\caption{Out-of-sample $R^2$ (\%) against the prevailing mean by model and
 horizon. Negative values indicate lower accuracy than the benchmark.}
 \label{fig:r2oos}
 \end{figure}
 
 \input{../output/tables/table2_tex.tex}
 
-\subsection{Replicating Neely et al.\ (2014)}\label{sec:results:neely}
-To examine the individual technical signals, we estimate the expanding-window bivariate
-predictive regressions of the one-month-ahead premium on one technical
-signal at a time---on their 1966--2011 evaluation sample and on the
-2012--2025 extension (Table~\ref{tab:table5}). With predictor signals dated before the return they forecast, the three
-focal on-balance-volume estimates are VOL(2,9) $+0.19\%$ (one-sided
-Diebold--Mariano $p=0.339$), VOL(2,12) $+0.11\%$ ($p=0.403$), and VOL(3,12)
-$+0.53\%$ ($p=0.196$).
-None of these three focal estimates is significant at 5\%; none of the six
-volume rules is significant at that level either. On the 2012--2025 extension,
-the three focal estimates are negative and none is significant.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{../output/figures/figure3_gr_weights.png}
+\caption{Constrained Granger--Ramanathan combination weights at $h=1$,
+estimated from past out-of-sample forecast errors with $\sum_i w_i=1$,
+$w_i\ge0$; equal weights apply until 60 past errors are available.}
+\label{fig:grweights}
+\end{figure}
+
+\subsection{Technical indicators: Neely et al.\ (2014) replication and extension}\label{sec:results:neely}
+To examine RQ2 directly, we adapt the Neely et al.\ (2014) design:
+expanding-window bivariate regressions of the one-month-ahead premium on one
+technical signal at a time, compared with the prevailing mean using a
+one-sided Diebold--Mariano test on squared errors. Their original design
+uses a 181-month initial window; with signals dated before the returns they
+predict, our panel provides 178 training pairs before the first forecast in
+1966:01. Table~\ref{tab:table5} reports all fourteen signals.
+
+On 1966--2011, ten of the fourteen signals have a positive
+$R^2_{\mathrm{OOS}}$, the largest being VOL(1,12) at 0.591\%, but none is
+significant even at 10\%; the smallest $p$-value is 0.196 for VOL(3,12).
+Neely et al.\ (2014) report significant predictability for several of these
+indicators using the Clark--West statistic, which is designed for nested
+models; our Diebold--Mariano test is more conservative in this setting, so
+the two sets of results are not directly comparable. On the 2012--2025
+extension all fourteen signals have negative $R^2_{\mathrm{OOS}}$, ranging
+from $-0.274\%$ to $-2.535\%$. The same picture holds in our main rolling
+design: over 1971--2025, all fourteen single-signal regressions estimated on
+the 240-month window have negative $R^2_{\mathrm{OOS}}$ (between $-0.527\%$
+and $-1.471\%$; smallest $p=0.7543$), and adding the signals to the macro
+predictors does not help the multivariate models (Appendix~\ref{app:variants}).
 
 \begin{table}[htbp]
 \centering
-\caption{Neely et al.\ (2014) replication and extension: expanding-window
-bivariate predictive regressions, one technical signal at a time, against the
-prevailing mean.}
+\caption{Adapted Neely et al.\ (2014) replication and extension:
+expanding-window bivariate regressions on one technical signal against the
+prevailing mean ($h=1$).}
 \label{tab:table5}
 \small
 \begin{threeparttable}
-\begin{tabular}{llrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
-Sample & Signal & $n$ & $R^2_{OOS}$ (\%) & DM $p$-value \\
+& \multicolumn{2}{c}{1966--2011 ($n=552$)} & \multicolumn{2}{c}{2012--2025 ($n=168$)} & \multicolumn{2}{c}{1966--2025 ($n=720$)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Signal & $R^2_{OOS}$ (\%) & DM $p$ & $R^2_{OOS}$ (\%) & DM $p$ & $R^2_{OOS}$ (\%) & DM $p$ \\
 \midrule
-\multicolumn{5}{l}{\emph{Panel A: 1966--2011 (Neely et al.\ sample)}} \\
- & VOL(2,9)  & 552 & 0.19 & 0.339 \\
- & VOL(2,12) & 552 & 0.11 & 0.403 \\
- & VOL(3,12) & 552 & 0.53 & 0.196 \\
- & MA(2,12)  & 552 & 0.57 & 0.248 \\
-\multicolumn{5}{l}{\emph{Panel B: 2012--2025 (extension)}} \\
- & VOL(2,9)  & 168 & -1.51 & 0.952 \\
- & VOL(2,12) & 168 & -0.95 & 0.835 \\
- & VOL(3,12) & 168 & -0.31 & 0.603 \\
- & MA(2,12)  & 168 & -1.09 & 0.776 \\
+MA(1,9)   & 0.082  & 0.4439 & $-1.052$ & 0.8572 & $-0.143$ & 0.6117 \\
+MA(1,12)  & 0.433  & 0.2917 & $-1.414$ & 0.8521 & 0.066    & 0.4617 \\
+MA(2,9)   & 0.166  & 0.4007 & $-0.653$ & 0.7266 & 0.003    & 0.4977 \\
+MA(2,12)  & 0.569  & 0.2478 & $-1.087$ & 0.7762 & 0.240    & 0.3708 \\
+MA(3,9)   & 0.254  & 0.3832 & $-1.086$ & 0.8435 & $-0.013$ & 0.5070 \\
+MA(3,12)  & $-0.060$ & 0.5465 & $-0.776$ & 0.9003 & $-0.203$ & 0.6808 \\
+MOM(9)    & $-0.036$ & 0.5324 & $-0.610$ & 0.8253 & $-0.150$ & 0.6548 \\
+MOM(12)   & $-0.058$ & 0.5629 & $-0.547$ & 0.8106 & $-0.155$ & 0.6875 \\
+VOL(1,9)  & 0.249  & 0.3268 & $-0.859$ & 0.7895 & 0.029    & 0.4767 \\
+VOL(1,12) & 0.591  & 0.1998 & $-2.535$ & 0.9870 & $-0.031$ & 0.5201 \\
+VOL(2,9)  & 0.189  & 0.3385 & $-1.514$ & 0.9524 & $-0.149$ & 0.6435 \\
+VOL(2,12) & 0.114  & 0.4025 & $-0.950$ & 0.8347 & $-0.097$ & 0.5917 \\
+VOL(3,9)  & $-0.130$ & 0.6256 & $-0.274$ & 0.6659 & $-0.158$ & 0.6753 \\
+VOL(3,12) & 0.531  & 0.1960 & $-0.313$ & 0.6025 & 0.363    & 0.2553 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
 \footnotesize
-\item Expanding estimation window with 178 correctly timed predictor--target pairs before the January 1966 forecast; one-sided Diebold--Mariano $p$-value (squared-error loss) against the prevailing mean. Complete results for all 14 signals are in \texttt{output/tables/table5\_neely\_replication.csv}; the signal-series comparison with the published series is in \texttt{output/tables/signal\_validation.csv}. Estimates are our own time-aligned regressions, not values taken from the published study.
+\item Expanding estimation window starting with 178 correctly timed predictor--target pairs before the 1966:01 forecast. DM $p$: one-sided Diebold--Mariano test (squared-error loss) against the prevailing mean. Source: \texttt{output/tables/table5\_neely\_replication.csv}. These are our own regressions, not values from the published study.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 \subsection{Economic evaluation}\label{sec:results:econ}
-Table~\ref{tab:table3} reports the two economic strategies net of transaction
-costs, and Figure~\ref{fig:wealth} plots the switching-strategy wealth paths.
-At $h=1$, the LASSO-driven switching strategy ends with \$232.7 per dollar
-invested versus \$341.9 for buy-and-hold; its maximum drawdown is $-44.4\%$
-versus $-50.2\%$, and its annualized Sharpe ratio is 0.767 versus 0.776.
-These sample outcomes show lower terminal wealth and only a modestly smaller
-drawdown for this specification. The mean--variance utility differences
-relative to the prevailing-mean allocation are negative for every forecast
-model at $h=1$ and at the reported fee levels. For example, at $h=1$ and
-10 bps net of transaction costs, $\Delta U$ is $-0.39\%$ p.a. for LASSO,
-$-2.07\%$ for post-LASSO, and $-0.99\%$ for the Granger--Ramanathan
-combination. The results therefore do not support a claim of positive
-mean--variance utility gains.
+Table~\ref{tab:table3} reports both strategies and Figure~\ref{fig:wealth}
+the switching wealth paths for the model with the highest
+$R^2_{\mathrm{OOS}}$ at each horizon. Because the prevailing mean is
+always positive, the prevailing-mean switching strategy is identical to
+buy-and-hold, which ends with \$341.59 per dollar at $h=1$ net of 10 bps.
+The ridge strategy ends with \$499.36, with a higher Sharpe ratio (0.569
+versus 0.494) and a smaller maximum drawdown ($-44.4\%$ versus $-50.2\%$).
+The Granger--Ramanathan (\$421.30), PLS (\$398.41) and equal-weight
+(\$382.92) strategies also finish above buy-and-hold, and elastic net only
+marginally (\$345.52). The other four of the nine strategies finish below
+it: PCR (\$330.38), rlasso (\$257.78), post-LASSO (\$242.67) and the random
+forest (\$92.58), which switches 167 times and holds equities in only 67.8\%
+of months. Costs matter little for slow-switching strategies: ridge falls
+from \$508.12 at 5 bps to \$482.26 at 20 bps.
+
+The advantage does not survive longer horizons. At $h=3$ only PLS
+(\$505.54), ridge (\$378.79) and post-LASSO (\$336.86) beat buy-and-hold
+(\$328.43). At $h=12$ only PCR (\$323.26) ends above buy-and-hold (\$264.75);
+post-LASSO never leaves equities and matches it, and the other seven
+strategies end below it. Since we run nine strategies at three horizons and
+select the best ex post, and since we do not test whether wealth or Sharpe
+differences are significant, the $h=1$ gains are suggestive at best. They
+also sit uneasily with the insignificant accuracy results: a switching rule
+depends only on the sign of the forecast, so its wealth can be driven by
+being out of equities in a small number of large down months.
+
+The mean--variance results are similar in spirit. At $h=1$ and 10 bps,
+six of nine models give a positive $\Delta U$ relative to the
+prevailing-mean investor (whose certainty-equivalent return is 7.16\% p.a.),
+led by ridge at 1.92\% p.a. and the Granger--Ramanathan combination at
+1.18\%; post-LASSO ($-0.86\%$) and the random forest ($-1.96\%$) lose. At
+$h=3$ six models are again positive, and the random forest has the largest
+gain (2.21\%) despite the worst $R^2_{\mathrm{OOS}}$, plausibly because
+its lower average equity weight (0.761 versus 1.067 for the
+prevailing-mean investor) reduces portfolio variance rather than because
+its forecasts are more accurate. At
+$h=12$ eight of nine models have negative $\Delta U$. These utility gains
+are not accompanied by significant accuracy gains and are not themselves
+tested.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{../output/figures/figure1_wealth.png}
-\caption{Cumulative wealth per \$1 of the binary switching strategy driven by
-the best model at each horizon (by $R^2_{\mathrm{OOS}}$), the prevailing mean,
-and buy-and-hold, net of 10 bps transaction costs.}
+\caption{Cumulative wealth per \$1 of the binary switching strategy for the
+model with the highest $R^2_{\mathrm{OOS}}$ at each horizon (selected ex
+post), the prevailing mean and buy-and-hold, net of 10 bps per switch.
+Buy-and-hold coincides with the prevailing-mean strategy.}
 \label{fig:wealth}
 \end{figure}
 
 \input{../output/tables/table3_tex.tex}
 
-\subsection{Interpreting the sample comparisons}\label{sec:results:discussion}
-Subperiod and predictor-set comparisons are descriptive and do not identify
-why forecast performance differs. In particular, they cannot establish that
-crisis months caused predictability, or that passive flows and faster
-arbitrage explain any change over time. The corrected bivariate estimates
-do not reproduce 5\% significance for the three focal volume signals on the
-1966--2011 sample; the extension therefore does not establish that
-previously reported predictability subsequently decayed. The macro-only and
-technical-only comparisons in Appendix~\ref{app:variants} report
-out-of-sample performance for those predictor sets; they do not establish
-causal mechanisms. Figure~\ref{fig:subperiods} and
-Table~\ref{tab:subperiods} report the underlying descriptive h=1 LASSO
-subperiod estimates.
+\subsection{Robustness}\label{sec:results:robust}
+\emph{Predictor sets.} Appendix Table~\ref{tab:tableA1} re-estimates the
+$h=1$ models with technical signals only (14 columns) and macro lags only
+(84 columns). With technical signals only, all nine $R^2_{\mathrm{OOS}}$
+values are negative (the best is post-LASSO at $-0.53\%$). With macro lags
+only, ridge is again the only positive model (0.17\%). The random forest
+improves markedly with the small technical set ($-5.42\%$ versus $-15.53\%$
+for the full set), consistent with overfitting in the wide design.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{../output/figures/figure4_subperiods.png}
-\caption{LASSO out-of-sample $R^2$ by subperiod at $h=1$. Values are
-descriptive comparisons against the prevailing mean within each subperiod.}
-\label{fig:subperiods}
-\end{figure}
+\emph{Expanded predictors.} With the 146-column expanded set, five of 27
+model--horizon pairs have positive $R^2_{\mathrm{OOS}}$, the largest being
+ridge at $h=3$ (0.847\%), with ridge at $h=1$ only 0.029\%. All models
+remain negative at $h=12$ and the random forest remains the worst
+($-13.117\%$ at $h=1$). We did not run Diebold--Mariano tests for this
+variant, so these values are descriptive only.
+
+\emph{Subperiods.} Table~\ref{tab:subperiods} splits the $h=1$ rlasso
+forecasts into three periods. Its $R^2_{\mathrm{OOS}}$ is negative in all
+of them and deteriorates over time, from $-0.63\%$ in 1971--1999 to
+$-1.20\%$ in 2000--2011 and $-1.94\%$ in 2012--2025. These comparisons are
+descriptive and do not identify a cause.
+
+\emph{Switching timing.} For $h>1$, an alternative timing sets each month's
+position from the most recent $h$-month-ahead forecast (made in the
+previous month), so the evaluation sample shifts by $h-1$ months. Under this
+timing, at $h=3$ PLS (\$387.23) and PCR (\$341.14) end above the
+prevailing-mean strategy (\$316.02), while ridge (\$278.15) falls below it;
+at $h=12$ only PCR (\$310.82) beats the prevailing mean (\$269.73). The
+identity of the ``winning'' strategy thus depends on an arbitrary timing
+convention, reinforcing that the economic gains are fragile.
 
 \input{../output/tables/table_subperiods_h1_tex.tex}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.9\textwidth]{../output/figures/figure3_gr_weights.png}
-\caption{Granger--Ramanathan combination weights ($h=1$), estimated from past
-out-of-sample forecast errors with $\sum_i w_i=1$, $w_i\ge0$.}
-\label{fig:grweights}
-\end{figure}
-
 \section{Conclusion}\label{sec:conclusion}
-We apply a correctly time-aligned expanding-window bivariate design to the
-Neely et al.\ (2014) sample, with 178 paired observations available before
-the January 1966 forecast, and extend the analysis to 2025 with seven regularized
-machine learning models and two forecast combinations. Our computed
-technical signals match the published series in 99.98\% of months. The
-three focal volume-rule estimates are positive but not significant at 5\%
-in the original 1966--2011 evaluation period; none of the six volume rules
-is significant at 5\%. On the extended sample, no
-model beats the prevailing historical mean at any horizon. Since the corrected
-analysis does not reproduce significance in the original period, these
-results do not establish whether previously reported predictability decayed
-after 2011.
-At $h=1$ and 10 bps net of transaction costs, mean--variance $\Delta U$ is
-$-0.39\%$ p.a. for LASSO and $-2.07\%$ for post-LASSO. The economic
-strategies are evaluated separately from point-forecast accuracy; the
-complete fee sensitivity results are reported in
-Section~\ref{sec:results:econ} and Table~\ref{tab:table3}.
+\emph{RQ1.} Regularized machine learning does not reliably beat the
+historical average. Ridge regression achieves a small positive
+$R^2_{\mathrm{OOS}}$ at $h=1$ and $h=3$, but no Diebold--Mariano test is
+significant at any horizon, and flexible nonlinear modelling (the random
+forest) is clearly harmful. \emph{RQ2.} The technical signals do not add
+statistically significant predictive value in our adapted design: on the
+1966--2011 sample most single-signal gains are positive but insignificant,
+after 2011 all are negative, and technical-only multivariate models are
+negative too. \emph{RQ3.} Some forecasts, notably ridge, the
+Granger--Ramanathan combination and PLS at $h=1$, produce higher switching
+wealth and positive certainty-equivalent gains net of costs, but these
+gains depend on model choice, horizon and timing convention, fade at
+$h=12$, and are not tested for significance. Our overall conclusion is that
+the prevailing mean remains a hard benchmark to beat.
 
-Our study has clear limitations. It covers a single market (the US) with
-monthly data; the rolling window length and lag structure are fixed rather
-than selected; and the economic evaluation ignores short-sale constraints
-beyond the $[0,1.5]$ weight bound and assumes the investor trades at the
-index level. Future work could extend the exercise to international equity
-markets, higher-frequency signals, or shrinkage schemes that combine the
-prevailing mean directly with the model forecast---a natural response to the
-persistent failure of point forecasts documented here.
+The study has several limitations. We use the latest data vintage rather
+than real-time data, so macro predictors may contain revisions unavailable
+to investors at the time. Our technical signals match the published series
+in 99.98\% of signal-months, not perfectly, and the 2012--2025 volume
+series is spliced from a different source. The Neely et al.\ (2014)
+analysis is an adapted, not exact, replication (different initial window,
+Diebold--Mariano rather than Clark--West inference). With nine forecasts,
+three horizons and several robustness variants, the few positive results
+are exactly what multiple comparisons would produce by chance, and we do
+not correct for this selection. The economic gains carry no significance
+test, and the expanded predictor set uses only eight of the Goyal et al.\
+(2024) variables. Future work could apply formal tests of economic value,
+real-time vintages, and shrinkage of model forecasts towards the prevailing
+mean.
 
 \appendix
 \section{Predictor-set variants}\label{app:variants}
-Table~\ref{tab:tableA1} reports $R^2_{\mathrm{OOS}}$ at $h=1$ for three
-predictor sets: the full design (84 macro-lag columns plus 14 technical
-signals), the 14 technical signals alone, and the 84 macro-lag columns alone.
-All nine reported $R^2_{\mathrm{OOS}}$ values are negative for each of the
-three predictor sets. These are descriptive comparisons; the bivariate
-regressions in Section~\ref{sec:results:neely} use one technical signal at a
-time and therefore estimate a different specification.
+Table~\ref{tab:tableA1} reports $R^2_{\mathrm{OOS}}$ at $h=1$ for the full
+98-column design, the 14 technical signals alone and the 84 macro-lag
+columns alone, using the same rolling window, tuning and benchmark.
 
 \input{../output/tables/tableA1_tex.tex}
 
-\begin{thebibliography}{9}
+\section*{AI use statement}
+Generative AI (the GitHub Copilot coding agent) was used in this project for
+code review and correction, for writing verification scripts that check
+reported numbers against the output files, and for drafting and rewriting
+report text, including the motivation, interpretation and discussion, at
+the group's request. All group members reviewed the code, results and text,
+and take responsibility for the content. Chat transcripts are available on
+request: [link/transcript to be added by group].
+
+\begin{thebibliography}{99}
+\bibitem{ct2008} Campbell, J. Y., and S. B. Thompson (2008). Predicting excess
+stock returns out of sample: Can anything beat the historical average?
+\emph{Review of Financial Studies} 21(4), 1509--1531.
+\bibitem{schwab2026} Charles Schwab (2026). Pricing: trading fees and
+commissions. \url{https://www.schwab.com/pricing} (accessed 7 November 2026).
+\bibitem{hdm2016} Chernozhukov, V., C. Hansen, and M. Spindler (2016). hdm:
+High-dimensional metrics. \emph{The R Journal} 8(2), 185--199.
+\bibitem{cw2007} Clark, T. E., and K. D. West (2007). Approximately normal
+tests for equal predictive accuracy in nested models. \emph{Journal of
+Econometrics} 138(1), 291--311.
+\bibitem{dm1995} Diebold, F. X., and R. S. Mariano (1995). Comparing predictive
+accuracy. \emph{Journal of Business \& Economic Statistics} 13(3), 253--263.
 \bibitem{gw2008} Goyal, A., and I. Welch (2008). A comprehensive look at the
 empirical performance of equity premium prediction. \emph{Review of Financial
 Studies} 21(4), 1455--1508.
 \bibitem{gwz2024} Goyal, A., I. Welch, and A. Zafirov (2024). A comprehensive
 2022 look at the empirical performance of equity premium prediction.
 \emph{Review of Financial Studies} 37(11), DOI: 10.1093/rfs/hhae044.
+\bibitem{gr1984} Granger, C. W. J., and R. Ramanathan (1984). Improved methods
+of combining forecasts. \emph{Journal of Forecasting} 3(2), 197--204.
+\bibitem{gkx2020} Gu, S., B. Kelly, and D. Xiu (2020). Empirical asset pricing
+via machine learning. \emph{Review of Financial Studies} 33(5), 2223--2273.
+\bibitem{mackinnon2010} MacKinnon, J. G. (2010). Critical values for
+cointegration tests. Queen's Economics Department Working Paper No.\ 1227.
 \bibitem{neely2014} Neely, C. J., D. E. Rapach, J. Tu, and G. Zhou (2014).
 Forecasting the equity risk premium: The role of technical indicators.
 \emph{Management Science} 60(7), 1772--1791.
-\bibitem{gkx2020} Gu, S., B. Kelly, and D. Xiu (2020). Empirical asset pricing
-via machine learning. \emph{Review of Financial Studies} 33(5), 2223--2273.
-\bibitem{ct2008} Campbell, J. Y., and S. B. Thompson (2008). Predicting excess
-stock returns out of sample: Can anything beat the historical average?
-\emph{Review of Financial Studies} 21(4), 1509--1531.
-\bibitem{dm1995} Diebold, F. X., and R. S. Mariano (1995). Comparing predictive
-accuracy. \emph{Journal of Business \& Economic Statistics} 13(3), 253--263.
-\bibitem{cw2007} Clark, T. E., and K. D. West (2007). Approximately normal
-tests for equal predictive accuracy in nested models. \emph{Journal of
-Econometrics} 138(1), 291--311.
-\bibitem{schwab2026} Charles Schwab (2026). Pricing: trading fees and
-commissions. \url{https://www.schwab.com/pricing} (accessed 7 November 2026).
-\bibitem{gr1984} Granger, C. W. J., and R. Ramanathan (1984). Improved methods
-of combining forecasts. \emph{Journal of Forecasting} 3(2), 197--204.
 \end{thebibliography}
 
 \end{document}
