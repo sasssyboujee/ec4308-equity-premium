@@ -10,7 +10,7 @@
 # i.e. every month the investor re-reads the LATEST h-month-ahead forecast
 # and sets the position accordingly. This is the natural alternative when the
 # group prefers overlapping, monthly-updated positions for h = 3, 12 (open
-# decision #1 in review/CHECKPOINT_R3_SASI.md).
+# decision #1 in legacy/review/CHECKPOINT_R3_SASI.md).
 #
 # Timing B's return sample starts and ends h-1 months earlier than timing A.
 # They are different evaluation samples; output records the actual dates.

@@ -48,7 +48,7 @@ Any later code/data change invalidates this snapshot until rechecked.
 
 - [ ] Tell the group chat it's in.
 - [ ] Week 13 class: 10-minute presentation — all four speak. Scripts:
-      `deck/speaker_scripts.md`; deck: `deck/EC4308_Presentation.pptx`.
+      `deck/speaker_scripts.md`; deck: `Group6_EC4308.pptx`, built from `deck/SLIDE_SPEC.md`.
 - [ ] Reading Week: each member completes the individual peer
       review on Canvas (5% of grade).
 

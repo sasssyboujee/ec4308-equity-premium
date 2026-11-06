@@ -2,7 +2,7 @@
 
 > **Status:** current as of repo commit `9d863ec` (branch `main`). Every number
 > below was read from a CSV cell / `R/00_config.R` and is re-checkable with §9.
-> Earlier versions of this file, `deck/make_deck.py`, `deck/EC4308_Presentation.pptx`,
+> Earlier versions of this file, `legacy/deck/make_deck.py`, `legacy/deck/EC4308_Presentation.pptx`,
 > `report/main.tex|pdf`, README result text and `review/*.md` contain **stale,
 > wrong numbers** — do not copy anything numeric from them.
 
@@ -18,7 +18,7 @@
 | **Format** | 16:9 widescreen, 13.333 in × 7.5 in. Static: **no animations, no transitions, no embedded video/audio, no hyperlinks needed.** |
 | **Slide count** | 16 slides total: main slides 1–10 (presented, timed), slide 11 "Thank you / Questions" (shown during Q&A, not timed, no slide number in the timing plan), then backup slides B1–B5 (= physical slides 12–16, not presented; used only to answer questions). |
 | **Speaker notes** | Every slide gets a speaker-notes field containing only a pointer, e.g. `Script: deck/speaker_scripts.md → "### Slide 6 — Statistical accuracy" (Sasi, 1:15).` Do **not** paste script text into notes. Backup notes: `Backup for Q&A — not presented. Source: <file>.` |
-| **Tooling** | Use `python-pptx` (installed, v1.0.2) or equivalent. Build from a blank 16:9 presentation; do not reuse the old `deck/EC4308_Presentation.pptx`. |
+| **Tooling** | Use `python-pptx` (installed, v1.0.2) or equivalent. Build from a blank 16:9 presentation; do not reuse the old `legacy/deck/EC4308_Presentation.pptx`. |
 | **Numbers** | Copy displayed values **verbatim** from §5 slide specs (they equal the "Shown as" column of §8). Do **not** recompute or re-round from raw CSVs (R's rounding was used; e.g. −0.975 → −0.98). Render negative numbers with a typographic minus "−" (U+2212) or ASCII "-" — both pass §9. |
 | **Done when** | All checks in §9.1–§9.3 pass and every box in §10 is ticked. |
 

@@ -56,11 +56,11 @@ and disclosure. This repository does not establish that human compliance step.
 | Vienna    | Motivation / Report        | Literature review, economic discussion, 15-page report, presentation |
 
 > Full plan, deadlines and Prof. Denis's feedback pivots:
-> [`PROJECT_TIMELINE_AND_MILESTONES.md`](PROJECT_TIMELINE_AND_MILESTONES.md)
+> [`legacy/notes/PROJECT_TIMELINE_AND_MILESTONES.md`](legacy/notes/PROJECT_TIMELINE_AND_MILESTONES.md) (historical)
 
 ## Project rules (from Prof. Denis — do not break)
 
-- **Analysis in R.** The forecasting and evaluation pipeline uses R (`hdm`, `glmnet`, `pls`, `ranger`, `limSolve`, `readxl`, `ggplot2`); `deck/make_deck.py` is the deferred Python presentation generator.
+- **Analysis in R.** The forecasting and evaluation pipeline uses R (`hdm`, `glmnet`, `pls`, `ranger`, `limSolve`, `readxl`, `ggplot2`); slides are built from `deck/SLIDE_SPEC.md`.
 - **Prevailing Mean is the only benchmark** — no OLS benchmarks.
 - **Fixed 240-month rolling window** (20 years) for ML estimation; the PM benchmark and GR combination history expand.
 - **Horizon-correct training pairs:** each predictor row at month s is paired
@@ -170,8 +170,9 @@ data/
 output/
   ├── figures/             all report figures
   └── tables/              report tables, including h=1 subperiod results
-review/                   human review checkpoint packets (R1 Leon, R2 En Shao,
-                          R3 Sasi, R4 Vienna)
+review/                   project map (PROJECT_MAP.md / .html)
+deck/                     slide build spec + speaker scripts
+legacy/                   superseded notes, review packets, old deck (historical only)
 proposal/                 proposal draft, LaTeX source, submitted PDF
 docs/                     EC4308 project guidelines
 archive/                  personal/legacy material (NOT shared — gitignored)

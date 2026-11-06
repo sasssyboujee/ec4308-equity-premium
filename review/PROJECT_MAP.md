@@ -89,7 +89,7 @@ each line or an exact commit-by-commit development chronology.
 | Rolling forecasts and package integration | [Rolling harness](../R/01_rolling_window.R), [model wrappers](../R/08_models.R), [runner](../R/09_run_models.R) |
 | Benchmark and combined forecasts | [Prevailing mean](../R/02_prevailing_mean.R), [combinations](../R/10_combine_forecasts.R) |
 | Statistical and investment evaluation | [DM test](../R/03_diebold_mariano.R), [switching](../R/04_switching_strategy.R), [utility](../R/05_mv_utility.R), [CW test](../R/12_clark_west.R), [evaluation runner](../R/11_evaluate.R) |
-| Figures, tables, and presentation generation | [Figure generator](../R/13_figures.R), [LaTeX tables](../R/14_make_latex_tables.R), [deck generator](../deck/make_deck.py) |
+| Figures, tables, and presentation generation | [Figure generator](../R/13_figures.R), [LaTeX tables](../R/14_make_latex_tables.R), [deck generator](../legacy/deck/make_deck.py) |
 | Synthetic checks and submission packaging | [Model smoke tests](../R/98_smoke_models.R), [synthetic alignment tests](../R/99_demo_synthetic.R), [ZIP builder](../scripts/make_submission_zip.R) |
 
 ## 3. What enters the models, and what comes out?
@@ -254,7 +254,7 @@ was superseded by the timing correction.
 | Negative R2 establishes statistically significant inferiority | It establishes larger sample squared errors; the reported improvement tests do not establish significant improvement. |
 | Crisis months or market-structure changes explain the results | Those mechanisms were not identified by these descriptive comparisons. |
 
-Historical context is in the [audit report](AUDIT_REPORT.md).
+Historical context is in the [audit report](../legacy/review/AUDIT_REPORT.md).
 The corrected [harness](../R/01_rolling_window.R),
 [benchmark](../R/02_prevailing_mean.R), and
 [replication script](../R/16_neely_replication.R) are the implementation evidence.
@@ -284,7 +284,7 @@ flowchart TD
 | Deliverable or check | Current evidence/status |
 |---|---|
 | Written report | [PDF](../report/main.pdf), [LaTeX source](../report/main.tex); 14 pages, within the 15-page limit |
-| Presentation and spoken explanation | [Deck](../deck/EC4308_Presentation.pptx), [script](../deck/speaker_scripts.md), [build brief](../deck/SLIDE_SPEC.md); 10 slides with notes |
+| Presentation and spoken explanation | [Old deck (stale)](../legacy/deck/EC4308_Presentation.pptx), [script](../deck/speaker_scripts.md), [build brief](../deck/SLIDE_SPEC.md); 10 slides with notes |
 | Analysis outputs | [Tables](../output/tables/), [figures](../output/figures/), [processed data](../data/processed/) |
 | Source/data submission archive | [ZIP](../submission/EC4308_Project_Submission.zip); 38 files, integrity checked. Generated PDF/PPTX are not included. |
 | Fresh-extraction check | Initial panel and summary-statistics scripts passed during this session; the temporary extraction was removed. This is not a complete clean-room rerun. |

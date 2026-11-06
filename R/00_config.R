@@ -79,7 +79,7 @@ CONFIG$MACRO_CLASSIC <- c("d/p", "d/y", "e/p", "d/e", "svar", "b/m",
 #   * start too late / end early: csp, vp, impvar, vrp, ndrbl, ygap, rsvix, disag
 # Enabling them does not shorten the chosen sample; it only widens X.
 # Default: OFF (the
-# proposal and Neely et al. use the classic 14); see review/CHECKPOINT_R1.
+# proposal and Neely et al. use the classic 14); see legacy/review/CHECKPOINT_R1_LEON.md.
 CONFIG$MACRO_EXPANDED <- c("skvw", "tail", "rdsp", "avgcor",
                            "dtoy", "dtoat", "wtexas", "lzrt")
 CONFIG$USE_EXPANDED <- FALSE

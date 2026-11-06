@@ -3,7 +3,7 @@
 # =============================================================================
 # Builds submission/EC4308_GroupX_Submission.zip containing:
 #   * report LaTeX source (PDF is a separate deferred deliverable)
-#   * ALL R scripts (R/, data/, scripts/, deck/make_deck.py)
+#   * ALL R scripts (R/, data/, scripts/)
 #   * the raw data files (data/raw/*, including the GWZ workbook and the
 #     technical-indicator inputs) so the code runs from scratch
 #   * README.md with run instructions
@@ -36,13 +36,12 @@ files <- c(
   "report/main.tex",
   "README.md",
   "EC4308_Project.Rproj",
-  "EC4308_Project_Guidelines.pdf",
+  "docs/EC4308_Project_Guidelines.pdf",
   list.files("R",    pattern = "\\.R$",  full.names = TRUE),
   list.files("data", pattern = "\\.R$",  full.names = TRUE),
   list.files("data", pattern = "\\.md$", full.names = TRUE),
   list.files("data/raw", full.names = TRUE, all.files = TRUE, recursive = TRUE),
-  list.files("scripts", pattern = "\\.R$", full.names = TRUE),
-  "deck/make_deck.py"
+  list.files("scripts", pattern = "\\.R$", full.names = TRUE)
 )
 if (!all(file.exists(files))) {
   stop("Submission input is missing:\n",
