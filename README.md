@@ -113,6 +113,8 @@ Rscript R/16_neely_replication.R     # adapted expanding-window exercise
 Rscript R/11_evaluate.R              # -> Tables 2-3 (all horizons)
 Rscript R/17_switching_overlap.R     # alternative timing (different dates)
 Rscript R/13_figures.R               # -> Figures 1-4 + h=1 subperiod CSV
+Rscript R/18_figure_wealth_stacked.R # -> dark-theme stacked wealth figure (deck)
+Rscript R/19_figure_r2oos_light.R    # -> light-theme OOS R^2 figure (deck)
 Rscript R/14_make_latex_tables.R     # -> LaTeX table fragments
 Rscript scripts/make_submission_zip.R # -> submission/EC4308_Project_Submission.zip
 ```
