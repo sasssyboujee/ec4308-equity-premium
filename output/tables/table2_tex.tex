@@ -1,8 +1,8 @@
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Out-of-sample accuracy vs. the prevailing mean benchmark.}
 \label{tab:table2}
-\small
+\normalsize
 \begin{threeparttable}
 \begin{tabular}{lccccccc}
 \toprule
@@ -41,9 +41,10 @@ gr\_comb & 4.490 & 3.417 & -2.16 & 0.59 & 1.78 & 0.963 & 0.942 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\footnotesize
+\normalsize
 \item $R^2_{OOS}$: Campbell--Thompson (2008), in percent vs. the prevailing mean; negative values mean the model is less accurate than the benchmark. HR: hit rate, the fraction of months in which the forecast sign matches the realized sign (direction-of-change loss).
 \item $DM$: Diebold--Mariano on squared errors, one-sided H1 ``model more accurate''; $p_{MAE}$: absolute-error DM. Bartlett HAC bandwidth is $h-1$, a maintained inference choice. $^{*}/^{**}/^{***}$: 10\%/5\%/1\%.
+\item Source: \texttt{output/tables/table2\_h*.csv}, computed by \texttt{R/11\_evaluate.R} from forecasts produced by \texttt{R/09\_run\_models.R} and \texttt{R/10\_combine\_forecasts.R}.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

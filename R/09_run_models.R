@@ -1,21 +1,5 @@
-# =============================================================================
-# 09_run_models.R -- rolling OOS forecasts for all models x horizons
-# =============================================================================
-# Runs the Prevailing Mean benchmark and the seven ML models through the
-# fixed 240-month rolling harness at h = 1, 3, 12 on the real panel, then
-# computes the two forecast combinations (1/N equal weight, constrained
-# Granger-Ramanathan) as post-hoc combiners.
-#
-# Output (one wide CSV per horizon):
-#   data/processed/forecasts_h1.csv  columns: target_index, date, pm,
-#                                    rlasso, postlasso, ridge, enet, pcr,
-#                                    pls, rf, equal_comb, gr_comb
-#
-# Uses parallel::mclapply where supported; Windows runs one core because
-# forked workers are unavailable. Models are deterministic, so outputs match.
-#
-# Usage (repo root):  Rscript R/09_run_models.R [n_cores]
-# =============================================================================
+# Generate rolling forecasts and combinations.
+# Usage: Rscript R/09_run_models.R [n_cores] [spec] [horizons] [panel_file] [suffix]
 
 source("R/00_config.R")
 source("R/01_rolling_window.R")
@@ -108,7 +92,6 @@ for (h in hs) {
                 sum(is.na(r$oos$forecast)), r$secs))
   }
 
-  # benchmark (not parallelized; it is instantaneous)
   pm <- prevailing_mean(y, h = h, w = CONFIG$W_ROLLING)
   stopifnot(identical(pm$target_index, out$target_index))
   out$pm <- pm$forecast

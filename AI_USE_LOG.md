@@ -2,8 +2,8 @@
 
 This log supports the AI-use declaration required by the project guidelines
 (pp. 11–12, "Referencing AI Use"). It records the use of **GitHub Copilot
-(agent mode, in VS Code)** during one working session from 6 to 7 November 2026.
-It covers only that session. **Each group member must add any other AI use**
+(agent mode, in VS Code)** during a working session from 6 to 7 November 2026,
+plus the additional assistance recorded below. **Each group member must add any other AI use**
 (other tools, earlier sessions, individual work) in the table at the end.
 
 Chat transcript: `[link/export to be added by the group]`
@@ -49,7 +49,40 @@ should consider rewriting those parts in its own words, or ask Prof. Tkachenko
 whether the declared use is acceptable. The guidelines say "consult me before
 proceeding".
 
-## 4. Other AI use (to be completed by each member)
+## 4. Additional recorded assistance
+
+On 2026-11-16, Copilot checked the branch against its remote, shortened redundant
+runner comments, adjusted the report's table and title/abstract spacing, updated
+the submission instructions to match the instructor's email requirement, and
+rebuilt the PDF and code/data ZIP. The complete clean-ZIP replication check
+passed: all 38 generated result files matched the existing outputs, and the
+replicated PDF matched the attachment's text and rendered pages. The environment
+and attachment checksums are recorded in [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md).
+No report motivation, interpretation or discussion was rewritten in this session.
+This entry does not constitute group review or instructor approval.
+
+On 2026-11-17, Copilot shortened the AI-use statement while retaining the
+recorded report-drafting assistance and split the economic-results table into
+two portrait tables. It rebuilt the PDF and replication ZIP and checked page
+orientation, layout, references and all displayed economic results against the
+unchanged CSVs. No model or evaluation logic was changed.
+
+On 2026-11-18, following group review notes, Copilot moved the Methodology
+section before Data, added a short roadmap sentence and an R-package sentence,
+added source notes naming the generating scripts to figures and tables, removed
+em dashes, pinned floats at paragraph boundaries and reduced margins to 2 cm.
+No results, motivation or interpretation were changed.
+
+Later on 2026-11-18, Copilot set tables, notes, captions and the abstract to
+11pt with 1.5 spacing, reduced margins to 1.6 cm, made the tallest tables break
+only between panels, merged the identical prevailing-mean and buy-and-hold rows
+in Table 4 and dropped the empty buy-and-hold rows in Table 5. No numbers changed.
+Following a group member's comment, Copilot also added a sentence linking the
+standalone signal tests in Section 4.2 to the predictor-set comparison in
+Section 4.4, and a sentence in 4.4 summarising the full versus macro-only
+columns of Appendix Table 7.
+
+## 5. Other AI use (to be completed by each member)
 
 | Member | Tool | What it was used for | Transcript/link |
 |---|---|---|---|

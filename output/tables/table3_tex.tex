@@ -1,59 +1,127 @@
-\begin{landscape}
-\begin{table}[htbp]
-\centering
-\caption{Economic strategy outcomes net of transaction costs.}
-\label{tab:table3}
-\footnotesize
-\begin{threeparttable}
-\begin{tabular}{lcccccccccccccc}
+\begingroup
+\setlength{\LTpost}{0.5\baselineskip}
+\setlength{\tabcolsep}{3.9pt}
+\begin{longtable}{lrrrrrrrr}
+\caption{Binary switching outcomes net of transaction costs.}\label{tab:table3} \\
 \toprule
-& \multicolumn{6}{c}{Binary switching (10 bps)} & \multicolumn{2}{c}{Switching wealth} & \multicolumn{3}{c}{MV $\Delta U$ (\% p.a.)} & \multicolumn{3}{c}{MV (10 bps)} \\
-\cmidrule(lr){2-7} \cmidrule(lr){8-9} \cmidrule(lr){10-12} \cmidrule(lr){13-15}
-Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps & 10 bps & 5 bps & 20 bps & CER & Sharpe & Mean $w$ \\
+& \multicolumn{6}{c}{Binary switching (10 bps)} & \multicolumn{2}{c}{Switching wealth} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-9}
+Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps \\
 \midrule
-\multicolumn{15}{l}{\emph{Panel: $h=1$}} \\
-rlasso & 257.78 & 341.59 & 0.48 & -0.44 &  35 & 0.95 & 262.33 & 248.90 & 0.08 & 0.18 & -0.12 & 7.24 & 0.42 & 0.97 \\
-postlasso & 242.67 & 341.59 & 0.46 & -0.50 &  15 & 0.99 & 244.50 & 239.05 & -0.86 & -0.83 & -0.92 & 6.30 & 0.36 & 0.91 \\
-ridge & 499.36 & 341.59 & 0.57 & -0.44 &  35 & 0.93 & 508.12 & 482.26 & 1.92 & 1.98 & 1.81 & 9.08 & 0.54 & 0.95 \\
-enet & 345.52 & 341.59 & 0.51 & -0.50 &   9 & 0.98 & 347.05 & 342.48 & -0.23 & -0.19 & -0.32 & 6.93 & 0.40 & 0.93 \\
-pcr & 330.38 & 341.59 & 0.51 & -0.47 &  35 & 0.91 & 336.18 & 319.05 & 0.74 & 0.81 & 0.59 & 7.90 & 0.46 & 0.94 \\
-pls & 398.41 & 341.59 & 0.54 & -0.50 &  15 & 0.95 & 401.37 & 392.54 & 0.36 & 0.40 & 0.28 & 7.52 & 0.44 & 0.94 \\
-rf & 92.58 & 341.59 & 0.41 & -0.23 & 167 & 0.68 & 100.60 & 78.39 & -1.96 & -1.70 & -2.47 & 5.21 & 0.27 & 0.79 \\
-equal\_comb & 382.92 & 341.59 & 0.54 & -0.44 &  41 & 0.92 & 390.77 & 367.67 & 0.69 & 0.81 & 0.46 & 7.85 & 0.46 & 0.91 \\
-gr\_comb & 421.30 & 341.59 & 0.55 & -0.44 &  35 & 0.92 & 428.73 & 406.82 & 1.18 & 1.25 & 1.06 & 8.35 & 0.49 & 0.96 \\
-Buy-and-Hold & 341.59 & 341.59 & 0.49 & -0.50 &   1 & 1.00 &  &  &  &  &  &  &  &  \\
-Prevailing Mean & 341.59 & 341.59 & 0.49 & -0.50 &   1 & 1.00 &  &  & 0.00 & 0.00 & 0.00 & 7.16 & 0.42 & 1.07 \\
-\multicolumn{15}{l}{\emph{Panel: $h=3$}} \\
-rlasso & 214.04 & 328.43 & 0.45 & -0.45 &  25 & 0.96 & 216.71 & 208.78 & -0.54 & -0.46 & -0.70 & 6.59 & 0.38 & 0.99 \\
-postlasso & 336.86 & 328.43 & 0.50 & -0.50 &   9 & 0.99 & 338.38 & 333.84 & -0.35 & -0.33 & -0.41 & 6.77 & 0.39 & 0.92 \\
-ridge & 378.79 & 328.43 & 0.52 & -0.44 &  31 & 0.95 & 384.68 & 367.26 & 1.27 & 1.33 & 1.16 & 8.40 & 0.49 & 0.97 \\
-enet & 255.73 & 328.43 & 0.47 & -0.50 &  25 & 0.97 & 258.90 & 249.49 & -1.80 & -1.74 & -1.93 & 5.33 & 0.29 & 0.92 \\
-pcr & 220.28 & 328.43 & 0.47 & -0.45 &  31 & 0.90 & 223.67 & 213.64 & 0.90 & 0.96 & 0.79 & 8.03 & 0.47 & 0.94 \\
-pls & 505.54 & 328.43 & 0.57 & -0.50 &  19 & 0.92 & 510.31 & 496.11 & 0.70 & 0.73 & 0.64 & 7.83 & 0.46 & 0.87 \\
-rf & 212.56 & 328.43 & 0.54 & -0.30 & 133 & 0.64 & 227.10 & 186.18 & 2.21 & 2.42 & 1.79 & 9.34 & 0.56 & 0.76 \\
-equal\_comb & 318.80 & 328.43 & 0.52 & -0.44 &  45 & 0.91 & 326.02 & 304.81 & 0.96 & 1.06 & 0.75 & 8.08 & 0.48 & 0.89 \\
-gr\_comb & 304.91 & 328.43 & 0.51 & -0.44 &  49 & 0.90 & 312.43 & 290.41 & 0.78 & 0.87 & 0.59 & 7.91 & 0.46 & 0.94 \\
-Buy-and-Hold & 328.43 & 328.43 & 0.49 & -0.50 &   1 & 1.00 &  &  &  &  &  &  &  &  \\
-Prevailing Mean & 328.43 & 328.43 & 0.49 & -0.50 &   1 & 1.00 &  &  & 0.00 & 0.00 & 0.00 & 7.13 & 0.42 & 1.07 \\
-\multicolumn{15}{l}{\emph{Panel: $h=12$}} \\
-rlasso & 148.54 & 264.75 & 0.42 & -0.51 &  25 & 0.96 & 150.41 & 144.88 & -0.89 & -0.81 & -1.05 & 5.72 & 0.34 & 0.93 \\
-postlasso & 264.75 & 264.75 & 0.48 & -0.50 &   1 & 1.00 & 264.89 & 264.49 & -0.89 & -0.88 & -0.90 & 5.73 & 0.34 & 0.93 \\
-ridge & 261.26 & 264.75 & 0.48 & -0.50 &   7 & 0.98 & 262.16 & 259.47 & -1.05 & -1.02 & -1.10 & 5.57 & 0.33 & 0.92 \\
-enet & 264.29 & 264.75 & 0.49 & -0.50 &  31 & 0.96 & 268.37 & 256.30 & -0.42 & -0.38 & -0.51 & 6.19 & 0.36 & 0.93 \\
-pcr & 323.26 & 264.75 & 0.52 & -0.50 &  19 & 0.95 & 326.30 & 317.25 & -0.26 & -0.22 & -0.35 & 6.35 & 0.37 & 0.93 \\
-pls & 258.89 & 264.75 & 0.48 & -0.50 &   9 & 0.99 & 260.04 & 256.62 & -0.10 & -0.07 & -0.15 & 6.51 & 0.38 & 0.92 \\
-rf & 76.28 & 264.75 & 0.38 & -0.48 & 136 & 0.63 & 81.61 & 66.64 & 0.56 & 0.77 & 0.13 & 7.17 & 0.41 & 0.71 \\
-equal\_comb & 193.27 & 264.75 & 0.45 & -0.50 &  39 & 0.95 & 197.05 & 185.92 & -0.48 & -0.38 & -0.67 & 6.13 & 0.35 & 0.86 \\
-gr\_comb & 167.12 & 264.75 & 0.43 & -0.50 &  45 & 0.91 & 170.91 & 159.80 & -0.81 & -0.70 & -1.03 & 5.80 & 0.34 & 0.88 \\
-Buy-and-Hold & 264.75 & 264.75 & 0.48 & -0.50 &   1 & 1.00 &  &  &  &  &  &  &  &  \\
-Prevailing Mean & 264.75 & 264.75 & 0.48 & -0.50 &   1 & 1.00 &  &  & 0.00 & 0.00 & 0.00 & 6.61 & 0.40 & 1.06 \\
+\endfirsthead
+\multicolumn{9}{l}{\emph{Table~\ref{tab:table3} continued}} \\
+\toprule
+& \multicolumn{6}{c}{Binary switching (10 bps)} & \multicolumn{2}{c}{Switching wealth} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-9}
+Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps \\
+\midrule
+\endhead
+\midrule
+\multicolumn{9}{r}{\emph{Continued on next page}} \\
+\endfoot
 \bottomrule
-\end{tabular}
-\begin{tablenotes}
-\footnotesize
+\endlastfoot
+\multicolumn{9}{l}{\emph{Panel: $h=1$}} \\*
+rlasso & 257.78 & 341.59 & 0.48 & -0.44 &  35 & 0.95 & 262.33 & 248.90 \\*
+postlasso & 242.67 & 341.59 & 0.46 & -0.50 &  15 & 0.99 & 244.50 & 239.05 \\*
+ridge & 499.36 & 341.59 & 0.57 & -0.44 &  35 & 0.93 & 508.12 & 482.26 \\*
+enet & 345.52 & 341.59 & 0.51 & -0.50 &   9 & 0.98 & 347.05 & 342.48 \\*
+pcr & 330.38 & 341.59 & 0.51 & -0.47 &  35 & 0.91 & 336.18 & 319.05 \\*
+pls & 398.41 & 341.59 & 0.54 & -0.50 &  15 & 0.95 & 401.37 & 392.54 \\*
+rf & 92.58 & 341.59 & 0.41 & -0.23 & 167 & 0.68 & 100.60 & 78.39 \\*
+equal\_comb & 382.92 & 341.59 & 0.54 & -0.44 &  41 & 0.92 & 390.77 & 367.67 \\*
+gr\_comb & 421.30 & 341.59 & 0.55 & -0.44 &  35 & 0.92 & 428.73 & 406.82 \\*
+Prevailing Mean / Buy-and-Hold & 341.59 & 341.59 & 0.49 & -0.50 &   1 & 1.00 &  &  \\
+\multicolumn{9}{l}{\emph{Panel: $h=3$}} \\*
+rlasso & 214.04 & 328.43 & 0.45 & -0.45 &  25 & 0.96 & 216.71 & 208.78 \\*
+postlasso & 336.86 & 328.43 & 0.50 & -0.50 &   9 & 0.99 & 338.38 & 333.84 \\*
+ridge & 378.79 & 328.43 & 0.52 & -0.44 &  31 & 0.95 & 384.68 & 367.26 \\*
+enet & 255.73 & 328.43 & 0.47 & -0.50 &  25 & 0.97 & 258.90 & 249.49 \\*
+pcr & 220.28 & 328.43 & 0.47 & -0.45 &  31 & 0.90 & 223.67 & 213.64 \\*
+pls & 505.54 & 328.43 & 0.57 & -0.50 &  19 & 0.92 & 510.31 & 496.11 \\*
+rf & 212.56 & 328.43 & 0.54 & -0.30 & 133 & 0.64 & 227.10 & 186.18 \\*
+equal\_comb & 318.80 & 328.43 & 0.52 & -0.44 &  45 & 0.91 & 326.02 & 304.81 \\*
+gr\_comb & 304.91 & 328.43 & 0.51 & -0.44 &  49 & 0.90 & 312.43 & 290.41 \\*
+Prevailing Mean / Buy-and-Hold & 328.43 & 328.43 & 0.49 & -0.50 &   1 & 1.00 &  &  \\
+\multicolumn{9}{l}{\emph{Panel: $h=12$}} \\*
+rlasso & 148.54 & 264.75 & 0.42 & -0.51 &  25 & 0.96 & 150.41 & 144.88 \\*
+postlasso & 264.75 & 264.75 & 0.48 & -0.50 &   1 & 1.00 & 264.89 & 264.49 \\*
+ridge & 261.26 & 264.75 & 0.48 & -0.50 &   7 & 0.98 & 262.16 & 259.47 \\*
+enet & 264.29 & 264.75 & 0.49 & -0.50 &  31 & 0.96 & 268.37 & 256.30 \\*
+pcr & 323.26 & 264.75 & 0.52 & -0.50 &  19 & 0.95 & 326.30 & 317.25 \\*
+pls & 258.89 & 264.75 & 0.48 & -0.50 &   9 & 0.99 & 260.04 & 256.62 \\*
+rf & 76.28 & 264.75 & 0.38 & -0.48 & 136 & 0.63 & 81.61 & 66.64 \\*
+equal\_comb & 193.27 & 264.75 & 0.45 & -0.50 &  39 & 0.95 & 197.05 & 185.92 \\*
+gr\_comb & 167.12 & 264.75 & 0.43 & -0.50 &  45 & 0.91 & 170.91 & 159.80 \\*
+Prevailing Mean / Buy-and-Hold & 264.75 & 264.75 & 0.48 & -0.50 &   1 & 1.00 &  &  \\
+\end{longtable}
+\endgroup
+\begin{list}{}{\setlength{\leftmargin}{0pt}\setlength{\itemsep}{0pt}\setlength{\topsep}{0pt}}
 \item Switching: holds equity when the forecast is positive, monthly risk-free cash otherwise. Every strategy starts in cash, pays equity entry and subsequent turnover costs, and has no terminal liquidation. Switch counts include entry. MaxDD = maximum drawdown; Exp. = mean equity exposure; cash uses realized Rfree, not the annual tbl predictor. Each h-step forecast predicts one month's return h months ahead, not a cumulative return.
+\item Source: \texttt{output/tables/table3\_h*.csv}, computed by \texttt{R/11\_evaluate.R}.
+\end{list}
+\medskip
+\begingroup
+\setlength{\LTpost}{0.5\baselineskip}
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{lrrrrrr}
+\caption{Mean--variance outcomes net of transaction costs.}\label{tab:table3_mv} \\
+\toprule
+& \multicolumn{3}{c}{MV $\Delta U$ (\% p.a.)} & \multicolumn{3}{c}{MV (10 bps)} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+Model & 10 bps & 5 bps & 20 bps & CER & Sharpe & Mean $w$ \\
+\midrule
+\endfirsthead
+\multicolumn{7}{l}{\emph{Table~\ref{tab:table3_mv} continued}} \\
+\toprule
+& \multicolumn{3}{c}{MV $\Delta U$ (\% p.a.)} & \multicolumn{3}{c}{MV (10 bps)} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+Model & 10 bps & 5 bps & 20 bps & CER & Sharpe & Mean $w$ \\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\emph{Continued on next page}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{7}{l}{\emph{Panel: $h=1$}} \\*
+rlasso & 0.08 & 0.18 & -0.12 & 7.24 & 0.42 & 0.97 \\*
+postlasso & -0.86 & -0.83 & -0.92 & 6.30 & 0.36 & 0.91 \\*
+ridge & 1.92 & 1.98 & 1.81 & 9.08 & 0.54 & 0.95 \\*
+enet & -0.23 & -0.19 & -0.32 & 6.93 & 0.40 & 0.93 \\*
+pcr & 0.74 & 0.81 & 0.59 & 7.90 & 0.46 & 0.94 \\*
+pls & 0.36 & 0.40 & 0.28 & 7.52 & 0.44 & 0.94 \\*
+rf & -1.96 & -1.70 & -2.47 & 5.21 & 0.27 & 0.79 \\*
+equal\_comb & 0.69 & 0.81 & 0.46 & 7.85 & 0.46 & 0.91 \\*
+gr\_comb & 1.18 & 1.25 & 1.06 & 8.35 & 0.49 & 0.96 \\*
+Prevailing Mean & 0.00 & 0.00 & 0.00 & 7.16 & 0.42 & 1.07 \\
+\multicolumn{7}{l}{\emph{Panel: $h=3$}} \\*
+rlasso & -0.54 & -0.46 & -0.70 & 6.59 & 0.38 & 0.99 \\*
+postlasso & -0.35 & -0.33 & -0.41 & 6.77 & 0.39 & 0.92 \\*
+ridge & 1.27 & 1.33 & 1.16 & 8.40 & 0.49 & 0.97 \\*
+enet & -1.80 & -1.74 & -1.93 & 5.33 & 0.29 & 0.92 \\*
+pcr & 0.90 & 0.96 & 0.79 & 8.03 & 0.47 & 0.94 \\*
+pls & 0.70 & 0.73 & 0.64 & 7.83 & 0.46 & 0.87 \\*
+rf & 2.21 & 2.42 & 1.79 & 9.34 & 0.56 & 0.76 \\*
+equal\_comb & 0.96 & 1.06 & 0.75 & 8.08 & 0.48 & 0.89 \\*
+gr\_comb & 0.78 & 0.87 & 0.59 & 7.91 & 0.46 & 0.94 \\*
+Prevailing Mean & 0.00 & 0.00 & 0.00 & 7.13 & 0.42 & 1.07 \\
+\multicolumn{7}{l}{\emph{Panel: $h=12$}} \\*
+rlasso & -0.89 & -0.81 & -1.05 & 5.72 & 0.34 & 0.93 \\*
+postlasso & -0.89 & -0.88 & -0.90 & 5.73 & 0.34 & 0.93 \\*
+ridge & -1.05 & -1.02 & -1.10 & 5.57 & 0.33 & 0.92 \\*
+enet & -0.42 & -0.38 & -0.51 & 6.19 & 0.36 & 0.93 \\*
+pcr & -0.26 & -0.22 & -0.35 & 6.35 & 0.37 & 0.93 \\*
+pls & -0.10 & -0.07 & -0.15 & 6.51 & 0.38 & 0.92 \\*
+rf & 0.56 & 0.77 & 0.13 & 7.17 & 0.41 & 0.71 \\*
+equal\_comb & -0.48 & -0.38 & -0.67 & 6.13 & 0.35 & 0.86 \\*
+gr\_comb & -0.81 & -0.70 & -1.03 & 5.80 & 0.34 & 0.88 \\*
+Prevailing Mean & 0.00 & 0.00 & 0.00 & 6.61 & 0.40 & 1.06 \\
+\end{longtable}
+\endgroup
+\begin{list}{}{\setlength{\leftmargin}{0pt}\setlength{\itemsep}{0pt}\setlength{\topsep}{0pt}}
 \item MV: mean--variance investor with $\gamma=3$, $w_t\in[0,1.5]$; $\Delta U$ = annualized certainty-equivalent gain over the benchmark allocation in percentage points; CER = certainty-equivalent return of the strategy (\% p.a.).
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
-\end{landscape}
+\item Every strategy starts in cash, pays proportional costs on weight changes and has no terminal liquidation.
+\item Source: as for Table~\ref{tab:table3}.
+\end{list}
+\medskip

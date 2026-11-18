@@ -18,6 +18,49 @@ na_fmt <- function(x, d = 3) ifelse(is.na(x), "", fmt(x, d))
 stars <- function(p) ifelse(is.na(p), "",
   ifelse(p < 0.01, "^{***}", ifelse(p < 0.05, "^{**}", ifelse(p < 0.1, "^{*}", ""))))
 
+# Tables too tall for one page at 11pt and 1.5 spacing continue on the next page.
+# Page breaks are allowed only before a panel heading or rule.
+keep_panels <- function(body, panel = "Panel") {
+  nxt <- c(body[-1], "")
+  nxt2 <- c(body[-(1:2)], "", "")
+  breakable <- grepl(panel, nxt) | (grepl("^\\\\midrule", nxt) & grepl(panel, nxt2)) |
+    nxt == ""
+  out <- ifelse(grepl(" \\\\\\\\$", body) & !breakable,
+                sub(" \\\\\\\\$", " \\\\\\\\*", body), body)
+  # A booktabs rule adds breakable glue, so draw an equivalent rule that cannot break.
+  prev <- c("", out[-length(out)])
+  ifelse(grepl("^\\\\midrule$", out) & grepl("\\\\\\\\\\*$", prev),
+         "\\noalign{\\nobreak\\vskip\\aboverulesep\\hrule height\\lightrulewidth\\nobreak\\vskip\\belowrulesep\\nobreak}",
+         out)
+}
+long_table <- function(caption, label, colspec, ncol, header, body, notes,
+                       tabcolsep = NULL, panel = "Panel") {
+  c(
+    "\\begingroup",
+    "\\setlength{\\LTpost}{0.5\\baselineskip}",
+    if (!is.null(tabcolsep)) sprintf("\\setlength{\\tabcolsep}{%s}", tabcolsep),
+    sprintf("\\begin{longtable}{%s}", colspec),
+    sprintf("\\caption{%s}\\label{%s} \\\\", caption, label),
+    "\\toprule", header, "\\midrule",
+    "\\endfirsthead",
+    sprintf("\\multicolumn{%d}{l}{\\emph{Table~\\ref{%s} continued}} \\\\", ncol, label),
+    "\\toprule", header, "\\midrule",
+    "\\endhead",
+    "\\midrule",
+    sprintf("\\multicolumn{%d}{r}{\\emph{Continued on next page}} \\\\", ncol),
+    "\\endfoot",
+    "\\bottomrule",
+    "\\endlastfoot",
+    keep_panels(body, panel),
+    "\\end{longtable}",
+    "\\endgroup",
+    "\\begin{list}{}{\\setlength{\\leftmargin}{0pt}\\setlength{\\itemsep}{0pt}\\setlength{\\topsep}{0pt}}",
+    notes,
+    "\\end{list}",
+    "\\medskip"
+  )
+}
+
 # ---------------------------------------------------------------- Table 1 ----
 t1 <- read.csv(file.path(CONFIG$OUTPUT_TABLES, "table1.csv"))
 macro_rows <- t1[t1$Panel == "B: macro predictors (raw)", ]
@@ -25,16 +68,6 @@ tech_rows  <- t1[t1$Panel == "C: technical signals", ]
 tgt_full   <- t1[t1$Panel == "A: target (full sample)", ]
 
 lines <- c(
-  "\\begin{table}[htbp]",
-  "\\centering",
-  "\\caption{Summary statistics and unit-root tests (sample: 1951:02--2025:12).}",
-  "\\label{tab:table1}",
-  "\\small",
-  "\\begin{threeparttable}",
-  "\\begin{tabular}{lrrrrrrrc}",
-  "\\toprule",
-  "Series & Mean & SD & Min & Max & Skew & Kurt & ADF & Sig. \\\\",
-  "\\midrule",
   "\\multicolumn{9}{l}{\\emph{Panel A: simple equity premium (\\%, monthly)}} \\\\",
   sprintf("$y_t$ (full sample) & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
           fmt(tgt_full$Mean, 3), fmt(tgt_full$SD, 3), fmt(tgt_full$Min, 2),
@@ -59,18 +92,16 @@ for (i in seq_len(nrow(tech_rows))) {
   lines <- c(lines, sprintf("%s & %s & & & & & & & \\\\",
                             esc_tex(r$Series), fmt(r$Mean, 3)))
 }
-lines <- c(lines,
-  "\\bottomrule",
-  "\\end{tabular}",
-  "\\begin{tablenotes}",
-  "\\footnotesize",
+lines <- long_table(
+  "Summary statistics and unit-root tests (sample: 1951:02--2025:12).",
+  "tab:table1", "lrrrrrrrc", 9,
+  "Series & Mean & SD & Min & Max & Skew & Kurt & ADF & Sig. \\\\",
+  lines, c(
   "\\item ADF: intercept and trend, common-sample BIC lag selection; MacKinnon (2010) asymptotic critical values $-3.959/-3.410/-3.127$ (1\\%/5\\%/10\\%). $T=899$ monthly observations before ADF lags.",
   "\\item Skewness and kurtosis are population moments; kurtosis is NOT excess (a normal distribution has kurtosis 3).",
   "\\item The premium is $100\\,(R^m-R^f)$ using monthly simple returns; macro predictors enter the models with one to six lags; technical signals are the 14 binary rules of Neely et al. (2014).",
-  "\\end{tablenotes}",
-  "\\end{threeparttable}",
-  "\\end{table}"
-)
+  "\\item Source: Goyal--Welch--Zafirov (2024) workbook, Neely et al. (2014) replication files and   Yahoo Finance volume; computed by \\texttt{data/02\\_table1.R}."
+  ), panel = "Panel C")
 writeLines(lines, file.path(CONFIG$OUTPUT_TABLES, "table1_tex.tex"))
 
 # ------------------------------------------------- Table 2 (accuracy) --------
@@ -97,11 +128,11 @@ for (h in CONFIG$HORIZONS) {
   )
 }
 lines2 <- c(
-  "\\begin{table}[htbp]",
+  "\\begin{table}[H]",
   "\\centering",
   "\\caption{Out-of-sample accuracy vs. the prevailing mean benchmark.}",
   "\\label{tab:table2}",
-  "\\small",
+  "\\normalsize",
   "\\begin{threeparttable}",
   "\\begin{tabular}{lccccccc}",
   "\\toprule",
@@ -111,9 +142,10 @@ lines2 <- c(
   "\\bottomrule",
   "\\end{tabular}",
   "\\begin{tablenotes}",
-  "\\footnotesize",
+  "\\normalsize",
   "\\item $R^2_{OOS}$: Campbell--Thompson (2008), in percent vs. the prevailing mean; negative values mean the model is less accurate than the benchmark. HR: hit rate, the fraction of months in which the forecast sign matches the realized sign (direction-of-change loss).",
   "\\item $DM$: Diebold--Mariano on squared errors, one-sided H1 ``model more accurate''; $p_{MAE}$: absolute-error DM. Bartlett HAC bandwidth is $h-1$, a maintained inference choice. $^{*}/^{**}/^{***}$: 10\\%/5\\%/1\\%.",
+  "\\item Source: \\texttt{output/tables/table2\\_h*.csv}, computed by \\texttt{R/11\\_evaluate.R} from forecasts produced by \\texttt{R/09\\_run\\_models.R} and \\texttt{R/10\\_combine\\_forecasts.R}.",
   "\\end{tablenotes}",
   "\\end{threeparttable}",
   "\\end{table}"
@@ -122,13 +154,13 @@ writeLines(lines2, file.path(CONFIG$OUTPUT_TABLES, "table2_tex.tex"))
 
 # ------------------------------------------- Table 3 (economic value) -------
 blocks3 <- list()
+blocks3_mv <- list()
 for (h in CONFIG$HORIZONS) {
   f3 <- file.path(CONFIG$OUTPUT_TABLES, sprintf("table3_h%d.csv", h))
   if (!file.exists(f3)) stop("Missing required economic table: ", f3, call. = FALSE)
   t3 <- read.csv(f3)
   rows <- apply(t3, 1, function(r) {
-    sprintf(paste0("%s & %s & %s & %s & %s & %s & %s & %s & %s & %s ",
-                   "& %s & %s & %s & %s & %s \\\\"),
+    sprintf("%s & %s & %s & %s & %s & %s & %s & %s & %s \\\\",
             esc_tex(r["model"]),
             na_fmt(as.numeric(r["sw_wealth_10bps"]), 2),
             na_fmt(as.numeric(r["sw_wealth_bh"]), 2),
@@ -137,7 +169,20 @@ for (h in CONFIG$HORIZONS) {
             ifelse(is.na(r["sw_switches"]), "", r["sw_switches"]),
             na_fmt(as.numeric(r["sw_eq_exposure"]), 2),
             na_fmt(as.numeric(r["sw_wealth_5bps"]), 2),
-            na_fmt(as.numeric(r["sw_wealth_20bps"]), 2),
+            na_fmt(as.numeric(r["sw_wealth_20bps"]), 2))
+  })
+  # The prevailing-mean forecast is always positive, so its switching row repeats buy-and-hold.
+  bh <- which(t3$model == "Buy-and-Hold"); pm <- which(t3$model == "Prevailing Mean")
+  if (length(bh) == 1 && length(pm) == 1) {
+    if (sub("^[^&]*", "", rows[bh]) != sub("^[^&]*", "", rows[pm]))
+      stop("Buy-and-Hold and Prevailing Mean switching rows differ at h = ", h, call. = FALSE)
+    rows[pm] <- sub("^[^&]*", "Prevailing Mean / Buy-and-Hold ", rows[pm])
+    rows <- rows[-bh]
+  }
+  mv_cols <- grep("^mv_", names(t3))
+  rows_mv <- apply(t3[rowSums(!is.na(t3[, mv_cols])) > 0, ], 1, function(r) {
+    sprintf("%s & %s & %s & %s & %s & %s & %s \\\\",
+            esc_tex(r["model"]),
             na_fmt(as.numeric(r["mv_deltaU_10bps_pct"]), 2),
             na_fmt(as.numeric(r["mv_deltaU_5bps_pct"]), 2),
             na_fmt(as.numeric(r["mv_deltaU_20bps_pct"]), 2),
@@ -146,35 +191,36 @@ for (h in CONFIG$HORIZONS) {
             na_fmt(as.numeric(r["mv_mean_w"]), 2))
   })
   blocks3[[length(blocks3) + 1L]] <- c(
-    sprintf("\\multicolumn{15}{l}{\\emph{Panel: $h=%d$}} \\\\", h),
+    sprintf("\\multicolumn{9}{l}{\\emph{Panel: $h=%d$}} \\\\", h),
     rows
+  )
+  blocks3_mv[[length(blocks3_mv) + 1L]] <- c(
+    sprintf("\\multicolumn{7}{l}{\\emph{Panel: $h=%d$}} \\\\", h),
+    rows_mv
   )
 }
 lines3 <- c(
-  "\\begin{landscape}",
-  "\\begin{table}[htbp]",
-  "\\centering",
-  "\\caption{Economic strategy outcomes net of transaction costs.}",
-  "\\label{tab:table3}",
-  "\\footnotesize",
-  "\\begin{threeparttable}",
-  "\\begin{tabular}{lcccccccccccccc}",
-  "\\toprule",
-  "& \\multicolumn{6}{c}{Binary switching (10 bps)} & \\multicolumn{2}{c}{Switching wealth} & \\multicolumn{3}{c}{MV $\\Delta U$ (\\% p.a.)} & \\multicolumn{3}{c}{MV (10 bps)} \\\\",
-  "\\cmidrule(lr){2-7} \\cmidrule(lr){8-9} \\cmidrule(lr){10-12} \\cmidrule(lr){13-15}",
-  "Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps & 10 bps & 5 bps & 20 bps & CER & Sharpe & Mean $w$ \\\\",
-  "\\midrule",
-  unlist(blocks3),
-  "\\bottomrule",
-  "\\end{tabular}",
-  "\\begin{tablenotes}",
-  "\\footnotesize",
-  "\\item Switching: holds equity when the forecast is positive, monthly risk-free cash otherwise. Every strategy starts in cash, pays equity entry and subsequent turnover costs, and has no terminal liquidation. Switch counts include entry. MaxDD = maximum drawdown; Exp. = mean equity exposure; cash uses realized Rfree, not the annual tbl predictor. Each h-step forecast predicts one month's return h months ahead, not a cumulative return.",
-  "\\item MV: mean--variance investor with $\\gamma=3$, $w_t\\in[0,1.5]$; $\\Delta U$ = annualized certainty-equivalent gain over the benchmark allocation in percentage points; CER = certainty-equivalent return of the strategy (\\% p.a.).",
-  "\\end{tablenotes}",
-  "\\end{threeparttable}",
-  "\\end{table}",
-  "\\end{landscape}"
+  long_table(
+    "Binary switching outcomes net of transaction costs.",
+    "tab:table3", "lrrrrrrrr", 9,
+    c("& \\multicolumn{6}{c}{Binary switching (10 bps)} & \\multicolumn{2}{c}{Switching wealth} \\\\",
+      "\\cmidrule(lr){2-7} \\cmidrule(lr){8-9}",
+      "Model & Wealth & Buy-hold & Sharpe & MaxDD & Switch & Exp. & 5 bps & 20 bps \\\\"),
+    unlist(blocks3), c(
+    "\\item Switching: holds equity when the forecast is positive, monthly risk-free cash otherwise. Every strategy starts in cash, pays equity entry and subsequent turnover costs, and has no terminal liquidation. Switch counts include entry. MaxDD = maximum drawdown; Exp. = mean equity exposure; cash uses realized Rfree, not the annual tbl predictor. Each h-step forecast predicts one month's return h months ahead, not a cumulative return.",
+    "\\item Source: \\texttt{output/tables/table3\\_h*.csv}, computed by \\texttt{R/11\\_evaluate.R}."),
+    tabcolsep = "3.9pt"),
+  long_table(
+    "Mean--variance outcomes net of transaction costs.",
+    "tab:table3_mv", "lrrrrrr", 7,
+    c("& \\multicolumn{3}{c}{MV $\\Delta U$ (\\% p.a.)} & \\multicolumn{3}{c}{MV (10 bps)} \\\\",
+      "\\cmidrule(lr){2-4} \\cmidrule(lr){5-7}",
+      "Model & 10 bps & 5 bps & 20 bps & CER & Sharpe & Mean $w$ \\\\"),
+    unlist(blocks3_mv), c(
+    "\\item MV: mean--variance investor with $\\gamma=3$, $w_t\\in[0,1.5]$; $\\Delta U$ = annualized certainty-equivalent gain over the benchmark allocation in percentage points; CER = certainty-equivalent return of the strategy (\\% p.a.).",
+    "\\item Every strategy starts in cash, pays proportional costs on weight changes and has no terminal liquidation.",
+    "\\item Source: as for Table~\\ref{tab:table3}."),
+    tabcolsep = "4pt")
 )
 writeLines(lines3, file.path(CONFIG$OUTPUT_TABLES, "table3_tex.tex"))
 
@@ -198,11 +244,12 @@ a1_rows <- sapply(MODELS2, function(nm) {
           fmt(r2mat[nm, "macro"], 2))
 })
 linesA1 <- c(
-  "\\begin{table}[htbp]",
+  "\\begin{table}[H]",
   "\\centering",
   "\\caption{Out-of-sample $R^2$ (\\%) at $h=1$ by predictor set: full set (98 columns), technical signals only (14), and macro lags only (84).}",
   "\\label{tab:tableA1}",
-  "\\small",
+  "\\normalsize",
+  "\\begin{threeparttable}",
   "\\begin{tabular}{lccc}",
   "\\toprule",
   "Model & Full & Technical & Macro \\\\",
@@ -210,6 +257,11 @@ linesA1 <- c(
   a1_rows,
   "\\bottomrule",
   "\\end{tabular}",
+  "\\begin{tablenotes}",
+  "\\normalsize",
+  "\\item Source: forecasts from \\texttt{R/09\\_run\\_models.R} (\\texttt{forecasts\\_h1*.csv}); $R^2_{OOS}$ computed by \\texttt{R/14\\_make\\_latex\\_tables.R}.",
+  "\\end{tablenotes}",
+  "\\end{threeparttable}",
   "\\end{table}"
 )
 writeLines(linesA1, file.path(CONFIG$OUTPUT_TABLES, "tableA1_tex.tex"))
@@ -224,11 +276,11 @@ subperiod_rows <- apply(subperiods, 1, function(r) {
           fmt(as.numeric(r["R2"]), 2))
 })
 lines_subperiods <- c(
-  "\\begin{table}[htbp]",
+  "\\begin{table}[H]",
   "\\centering",
   "\\caption{Descriptive LASSO out-of-sample accuracy by subperiod ($h=1$).}",
   "\\label{tab:subperiods}",
-  "\\small",
+  "\\normalsize",
   "\\begin{threeparttable}",
   "\\begin{tabular}{lrllr}",
   "\\toprule",
@@ -238,7 +290,7 @@ lines_subperiods <- c(
   "\\bottomrule",
   "\\end{tabular}",
   "\\begin{tablenotes}",
-  "\\footnotesize",
+  "\\normalsize",
   "\\item $R^2_{OOS}$ is computed against the prevailing mean within each subperiod. These comparisons are descriptive and not causal.",
   "\\item Source files: \\texttt{forecasts\\_h1.csv} and \\texttt{panel.csv}. Generated by \\texttt{R/13\\_figures.R}.",
   "\\end{tablenotes}",

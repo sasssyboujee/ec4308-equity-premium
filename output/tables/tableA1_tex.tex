@@ -1,8 +1,9 @@
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \caption{Out-of-sample $R^2$ (\%) at $h=1$ by predictor set: full set (98 columns), technical signals only (14), and macro lags only (84).}
 \label{tab:tableA1}
-\small
+\normalsize
+\begin{threeparttable}
 \begin{tabular}{lccc}
 \toprule
 Model & Full & Technical & Macro \\
@@ -18,4 +19,9 @@ equal\_comb & -1.09 & -1.10 & -1.13 \\
 gr\_comb & -0.54 & -1.56 & -0.49 \\
 \bottomrule
 \end{tabular}
+\begin{tablenotes}
+\normalsize
+\item Source: forecasts from \texttt{R/09\_run\_models.R} (\texttt{forecasts\_h1*.csv}); $R^2_{OOS}$ computed by \texttt{R/14\_make\_latex\_tables.R}.
+\end{tablenotes}
+\end{threeparttable}
 \end{table}

@@ -1,24 +1,13 @@
-# =============================================================================
-# scripts/make_submission_zip.R -- Canvas submission package
-# =============================================================================
-# Builds submission/EC4308_GroupX_Submission.zip containing:
-#   * report LaTeX source (PDF is a separate deferred deliverable)
-#   * ALL R scripts (R/, data/, scripts/)
-#   * the raw data files (data/raw/*, including the GWZ workbook and the
-#     technical-indicator inputs) so the code runs from scratch
-#   * README.md with run instructions
-# NOT included: .git, archive/, personal files (per repo .gitignore).
-#
-# Usage (repo root):  Rscript scripts/make_submission_zip.R
-# =============================================================================
+# Build the replication ZIP; attach the report PDF separately.
 
+raw_files <- file.path("data", "raw", c(
+  "GoyalWelchZafirov_PredictorData.xlsx",
+  "neely2014_Returns_econ_tech.xls", "neely_signals_published_1950_2011.csv",
+  "spx_volume_1950_2011.csv", "spx_volume_2012_2025.csv"
+))
 required <- c(
-  "README.md", "data/README.md", "R/00_config.R", "R/09_run_models.R",
-  "R/11_evaluate.R", "R/14_make_latex_tables.R",
-  "data/01_build_panel.R", "scripts/make_submission_zip.R",
-  file.path("data", "raw", c("GoyalWelchZafirov_PredictorData.xlsx",
-    "neely2014_Returns_econ_tech.xls", "neely_signals_published_1950_2011.csv",
-    "spx_volume_1950_2011.csv", "spx_volume_2012_2025.csv"))
+  "report/main.tex", "README.md",
+  raw_files
 )
 if (!all(file.exists(required))) {
   stop("Required code/data inputs are missing:\n",
@@ -30,18 +19,22 @@ zip_path <- file.path(out_dir, "EC4308_Project_Submission.zip")
 zip_tmp <- tempfile(pattern = "EC4308_Project_Submission-",
                     tmpdir = out_dir, fileext = ".zip")
 
+replication_scripts <- list.files("R", pattern = "\\.R$", full.names = TRUE)
+replication_scripts <- replication_scripts[
+  !basename(replication_scripts) %in% c(
+    "17_switching_overlap.R", "18_figure_wealth_stacked.R",
+    "19_figure_r2oos_light.R", "98_smoke_models.R", "99_demo_synthetic.R"
+  )
+]
+data_scripts <- list.files("data", pattern = "\\.R$", full.names = TRUE)
+data_scripts <- data_scripts[basename(data_scripts) != "download_goyal_data.R"]
+
 files <- c(
-  # NOTE: report/main.pdf is uploaded to Canvas separately (see
-  # SUBMISSION_CHECKLIST.md); the zip carries the LaTeX SOURCE + data + code.
   "report/main.tex",
   "README.md",
-  "EC4308_Project.Rproj",
-  "docs/EC4308_Project_Guidelines.pdf",
-  list.files("R",    pattern = "\\.R$",  full.names = TRUE),
-  list.files("data", pattern = "\\.R$",  full.names = TRUE),
-  list.files("data", pattern = "\\.md$", full.names = TRUE),
-  list.files("data/raw", full.names = TRUE, all.files = TRUE, recursive = TRUE),
-  list.files("scripts", pattern = "\\.R$", full.names = TRUE)
+  replication_scripts,
+  data_scripts,
+  raw_files
 )
 if (!all(file.exists(files))) {
   stop("Submission input is missing:\n",
